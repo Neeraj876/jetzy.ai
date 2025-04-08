@@ -15,7 +15,7 @@ A Streamlit-based travel planning application that uses OpenAI's language models
 
 This application demonstrates the integration of:
 - Streamlit for the user interface  
-- OpenAI's language models for natural language understanding  
+- OpenAI's language models for understanding user query and dynamic response generation
 - Managed Context Protocol (MCP) for tool execution & Context-Aware Function Calling 
 
 ## Project Structure
@@ -42,8 +42,11 @@ pip install -r requirements.txt
 ```
 
 3. Set up your OpenAI API key
-```bash
-export OPENAI_API_KEY=your_api_key_here
+
+To securely store your OpenAI API key, use a `.env` file in the root directory of your project.
+
+```ini
+OPENAI_API_KEY=your_api_key_here
 ```
 
 ## Usage
@@ -65,10 +68,10 @@ streamlit run main.py
 - **OpenAI API** 
 - **MCP SDK** 
 
-
 ## Requirements
 
 - Python 3.8+
 - streamlit
 - openai
 - mcp[cli]
+- python-dotenv

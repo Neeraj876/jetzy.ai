@@ -6,6 +6,9 @@ from openai import OpenAI
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+from dotenv import load_dotenv
+load_dotenv()
+
 server_params = StdioServerParameters(command="python", args=["mcp_server.py"])
 
 def llm_client(message:str):

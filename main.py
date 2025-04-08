@@ -2,7 +2,6 @@ import os
 import json
 import sys
 import streamlit as st
-# sys.path.append(os.path.abspath("..")) 
 from mcp_client import run_async
 
 # Set page configuration

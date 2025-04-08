@@ -7,6 +7,18 @@ mcp = FastMCP("My Server")
 
 @mcp.tool()
 def search_flights(from_location: str, to_location: str, date_range: str) -> List[Dict]:
+    """
+    Simulates searching for available flights between two locations within a given date range.
+
+    Args:
+        from_location (str): The departure city or airport.
+        to_location (str): The destination city or airport.
+        date_range (str): The travel date range in a format like "2025-05-01 to 2025-05-07".
+
+    Returns:
+        list: A list of dictionaries where each dictionary represents a flight option, 
+              including airline, price, departure, and arrival times.
+    """
     airlines = ["Delta", "United", "Air France", "Qatar Airways", "Lufthansa"]
     airport_codes = {
         "New York": "JFK",
@@ -50,6 +62,17 @@ def search_flights(from_location: str, to_location: str, date_range: str) -> Lis
 
 @mcp.tool()
 def recommend_hotels(location: str, budget: str = "medium") -> list:
+    """
+    Provides a simulated list of hotel recommendations based on the location and budget.
+
+    Args:
+        location (str): The city or region where the user wants to stay.
+        budget (str): The budget category, such as "low", "medium", or "high".
+
+    Returns:
+        list: A list of dictionaries where each dictionary contains hotel name, 
+              location, price per night, rating, and a mock booking link.
+    """
     hotel_data = {
         "low": [("Budget Inn", 50), ("City Hostel", 35)],
         "medium": [("Comfort Suites", 120), ("Holiday Hotel", 90)],
@@ -70,6 +93,16 @@ def recommend_hotels(location: str, budget: str = "medium") -> list:
 
 @mcp.tool()
 def recommend_attractions(location: str) -> list:
+    """
+    Returns a list of tourist attractions for a given location.
+
+    Args:
+        location (str): The name of the city or country to explore.
+
+    Returns:
+        list: A list of dictionaries where each dictionary includes the attraction name, 
+              its location, and a short description.
+    """
     sample_attractions = {
         "Paris": ["Eiffel Tower", "Louvre Museum", "Seine River Cruise"],
         "New York": ["Statue of Liberty", "Central Park", "Broadway Shows"],
@@ -87,6 +120,17 @@ def recommend_attractions(location: str) -> list:
 
 @mcp.tool()
 def recommend_restaurants(location: str, cuisine: str = "any") -> list:
+    """
+    Suggests local restaurants based on location and optionally preferred cuisine.
+
+    Args:
+        location (str): The city or region to search restaurants in.
+        cuisine (str): The preferred type of cuisine, e.g., "italian", "japanese", or "any".
+
+    Returns:
+        list: A list of dictionaries where each dictionary contains restaurant name, 
+              location, cuisine type, and a simulated rating.
+    """
     cuisines = {
         "any": ["The Local Bite", "Food Corner", "Taste Hub"],
         "italian": ["Pasta House", "Trattoria Roma", "Mama's Kitchen"],
@@ -106,6 +150,17 @@ def recommend_restaurants(location: str, cuisine: str = "any") -> list:
 
 @mcp.tool()
 def transport_options(from_location: str, to_location: str) -> dict:
+    """
+    Simulates available transport options between two locations including price and duration.
+
+    Args:
+        from_location (str): The origin city or place.
+        to_location (str): The destination city or place.
+
+    Returns:
+        dict: A dictionary with keys like "bus", "train", "flight", and "car", 
+              each containing a nested dictionary with duration and price in USD.
+    """
     return {
         "bus": {
             "duration": "10h",
@@ -127,6 +182,15 @@ def transport_options(from_location: str, to_location: str) -> dict:
 
 @mcp.tool()
 def seasonal_travel_advice(destination: str) -> str:
+    """
+    Provides general travel advice based on the season for a given destination.
+
+    Args:
+        destination (str): The name of the travel destination (city or country).
+
+    Returns:
+        str: A brief travel tip describing the ideal time to visit the destination.
+    """
     seasons = {
         "Greece": "Best time to visit Greece is between April and June or September and October.",
         "Japan": "Visit Japan in March-April for cherry blossoms or November for fall colors.",

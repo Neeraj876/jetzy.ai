@@ -1,6 +1,6 @@
 # Travel Planner App
 
-A Streamlit-based travel planning application that uses OpenAI's language models and the Managed Context Protocol (MCP) to help users plan their perfect vacation.
+The Jetzy Travel AI ChatBot will serve as an intelligent conversational travel assistant using ChatGPT API. 
 
 ## Features
 

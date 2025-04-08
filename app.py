@@ -1,110 +1,112 @@
 import streamlit as st
 import os
 from dotenv import load_dotenv
-from services.openai_service import OpenAIService
-from mcp.context_manager import ContextManager
 
-# Load environment variables
-load_dotenv()
+# Import from our modules
+from context_manager import ContextManager
+from openai_mcp import OpenAIClient, JetzyTravelAssistant
 
-# Initialize services
-context_manager = ContextManager()
-openai_service = OpenAIService(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    model="gpt-3.5-turbo",
-    temperature=0.7,
-    max_tokens=1000,
-    top_p=0.9,
-    frequency_penalty=0.2,
-    presence_penalty=0.3
-)
-
-# Set page config
-st.set_page_config(
-    page_title="Jetzy Travel AI ChatBot",
-    page_icon="✈️",
-    layout="centered"  
-)
-
-# App title
-st.title("✈️ Jetzy Travel AI")
-st.markdown("Your intelligent travel assistant. Ask about flights, hotels, attractions, and more!")
-
-# Initialize session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+def main():
+    # Load environment variables
+    load_dotenv()
     
-    # Add system greeting
-    st.session_state.messages.append({
-        "role": "assistant", 
-        "content": "Hello! I'm your Jetzy Travel AI assistant. How can I help with your travel plans today?"
-    })
-
-# Display chat history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# User input
-if prompt := st.chat_input("Ask me about your travel plans..."):
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    st.set_page_config(page_title="Jetzy Travel AI", page_icon="✈️")
+    st.title("Jetzy Travel AI Assistant")
     
-    # Get user context (location, preferences, etc.)
-    user_context = context_manager.get_user_context()
+    # Initialize session state for conversation history
+    if "conversation_history" not in st.session_state:
+        st.session_state.conversation_history = []
     
-    # Display assistant response
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        # Get response from OpenAI with context
-        response = openai_service.get_response(
-            messages=st.session_state.messages,
-            context=user_context
+    # Initialize the assistant
+    if "assistant" not in st.session_state:
+        # Try to get API key from environment or secrets
+        # Change this line:
+        api_key = os.getenv("OPENAI_API_KEY")
+
+        if not api_key:
+            st.error("OpenAI API key not found. Please set it  as an environment variable.")
+            st.stop()
+        
+        st.session_state.assistant = JetzyTravelAssistant(api_key)
+    
+    # Chat container
+    chat_container = st.container()
+    
+    # Clear conversation button and user preferences
+    with st.sidebar:
+        st.subheader("Settings")
+        if st.button("Clear Conversation"):
+            st.session_state.conversation_history = []
+            st.session_state.assistant.clear_conversation()
+            st.rerun()
+        
+        st.divider()
+        
+        # User preferences section
+        st.subheader("Your Preferences")
+        
+        # Current location
+        location = st.text_input("Your current location", key="user_location")
+        if st.button("Update Location"):
+            st.session_state.assistant.context_manager.set_location(location)
+            st.success(f"Location updated to {location}")
+        
+        # Travel preferences
+        st.subheader("Travel Preferences")
+        
+        home_airport = st.text_input("Home Airport", placeholder="e.g., JFK, LAX")
+        
+        travel_interests = st.multiselect(
+            "Travel Interests",
+            options=["Beach", "Mountains", "Culture", "Food", "Adventure", "Relaxation", "Shopping", "Nightlife"],
+            default=[]
         )
         
-        # Extract and update context from response
-        context_manager.update_context(response)
+        budget_level = st.select_slider(
+            "Budget Level",
+            options=["Budget", "Moderate", "Luxury"],
+            value="Moderate"
+        )
         
-        # Display the response
-        message_placeholder.markdown(response["content"])
+        if st.button("Update Preferences"):
+            preferences = {
+                "home_airport": home_airport,
+                "travel_interests": travel_interests,
+                "budget_level": budget_level
+            }
+            st.session_state.assistant.context_manager.set_preferences(preferences)
+            st.success("Preferences updated!")
     
-    # Add assistant response to chat history
-    st.session_state.messages.append({
-        "role": "assistant", 
-        "content": response["content"]
-    })
+    # Display conversation history
+    with chat_container:
+        if not st.session_state.conversation_history:
+            st.info("👋 Hello! I'm your Jetzy Travel Assistant. Ask me about destinations, flights, hotels, or any travel advice you need!")
+        
+        for msg in st.session_state.conversation_history:
+            if msg["role"] == "user":
+                st.chat_message("user").write(msg["content"])
+            else:
+                st.chat_message("assistant").write(msg["content"])
     
-# Sidebar for user preferences
-with st.sidebar:
-    st.header("Travel Preferences")
-    st.text_input("Home Airport", key="home_airport", placeholder="e.g., JFK")
-    st.multiselect(
-        "Preferred Airlines", 
-        options=["Any", "American Airlines", "Delta", "United", "JetBlue", "Southwest"],
-        default=["Any"]
-    )
-    st.select_slider(
-        "Budget Level",
-        options=["Budget", "Moderate", "Luxury"],
-        value="Moderate"
-    )
-    st.multiselect(
-        "Travel Interests", 
-        options=["Beaches", "Mountains", "Cities", "Cultural", "Food", "Adventure", "Relaxation"],
-        default=[]
-    )
+    # User input
+    user_message = st.chat_input("Ask me about travel...")
     
-    # Update context when preferences change
-    context_manager.set_preferences({
-    "home_airport": st.session_state.get("home_airport", ""),
-    "preferred_airlines": st.session_state.get("preferred_airlines", ["Any"]),
-    "budget_level": st.session_state.get("budget_level", "Moderate"),
-    "travel_interests": st.session_state.get("travel_interests", [])
-})
-    
-    # Clear chat history
-    if st.button("Clear Chat History"):
-        st.session_state.messages = []
-        st.experimental_rerun()
+    # Handle user message
+    if user_message:
+        # Add user message to conversation history
+        st.session_state.conversation_history.append({"role": "user", "content": user_message})
+        
+        # Process the message and get response
+        try:
+            with st.spinner("Thinking..."):
+                response = st.session_state.assistant.process_user_message(user_message)
+                # Add assistant response to conversation history
+                st.session_state.conversation_history.append({"role": "assistant", "content": response})
+        except Exception as e:
+            st.error(f"Error processing your request: {str(e)}")
+        
+        # Force a rerun to update the UI
+        st.rerun()
+
+if __name__ == "__main__":
+    main()

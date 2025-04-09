@@ -51,12 +51,7 @@ OPENAI_API_KEY=your_api_key_here
 
 ## Usage
 
-1. Start the MCP client in one terminal:
-```bash
-python mcp_client.py
-```
-
-2. In a separate terminal, start the Streamlit app:
+1. Start the Streamlit app:
 ```bash
 streamlit run main.py
 ```

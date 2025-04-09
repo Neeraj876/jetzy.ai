@@ -34,7 +34,7 @@ st.markdown("""
         margin-bottom: 20px;
     }
     .user-message {
-        background-color: #E3F2FD;
+        background-color: #2C3E50;
         padding: 12px 18px;
         border-radius: 15px 15px 0 15px;
         margin: 10px 0;
@@ -44,7 +44,7 @@ st.markdown("""
         clear: both;
     }
     .assistant-message {
-        background-color: #F5F5F5;
+        background-color: #808080;
         padding: 12px 18px;
         border-radius: 15px 15px 15px 0;
         margin: 10px 0;
@@ -58,13 +58,13 @@ st.markdown("""
         padding: 5px 15px;
         border: 1px solid #1E88E5;
         border-radius: 20px;
-        background-color: white;
+        background-color: #808080;
         color: #1E88E5;
         cursor: pointer;
         transition: all 0.3s;
     }
     .suggestion-button:hover {
-        background-color: #1E88E5;
+        background-color: #808080;
         color: white;
     }
     .stTextArea textarea {

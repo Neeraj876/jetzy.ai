@@ -21,7 +21,7 @@ This application demonstrates the integration of:
 ## Project Structure
 ```plaintext
 project/
-├── app.py            # Main application file
+├── main.py            # Main application file
 ├── mcp_server.py     # MCP server implementation
 ├── mcp_client.py     # LLM Client for API connections
 ├── requirements.txt  # Project dependencies

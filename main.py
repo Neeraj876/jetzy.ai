@@ -1,189 +1,252 @@
-import os
-import json
-import sys
 import streamlit as st
+from dotenv import load_dotenv
 from mcp_client import run_async
 
-# Set page configuration
+# Load environment variables
+load_dotenv()
+
+# Set page configuration with wider layout
 st.set_page_config(
-    page_title="Travel Planner",
+    page_title="TravelBuddy AI Assistant",
     page_icon="✈️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# Streamlit UI
-st.title("✈️ Travel Planner")
-st.markdown("Plan your perfect vacation with our travel assistant.")
+# Custom CSS for better styling
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1E88E5;
+        margin-bottom: 0;
+    }
+    .sub-header {
+        font-size: 1.1rem;
+        color: #616161;
+        margin-top: 0;
+        margin-bottom: 2rem;
+    }
+    .chat-container {
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .user-message {
+        background-color: #E3F2FD;
+        padding: 12px 18px;
+        border-radius: 15px 15px 0 15px;
+        margin: 10px 0;
+        display: inline-block;
+        max-width: 90%;
+        float: right;
+        clear: both;
+    }
+    .assistant-message {
+        background-color: #F5F5F5;
+        padding: 12px 18px;
+        border-radius: 15px 15px 15px 0;
+        margin: 10px 0;
+        display: inline-block;
+        max-width: 90%;
+        float: left;
+        clear: both;
+    }
+    .suggestion-button {
+        margin: 5px;
+        padding: 5px 15px;
+        border: 1px solid #1E88E5;
+        border-radius: 20px;
+        background-color: white;
+        color: #1E88E5;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .suggestion-button:hover {
+        background-color: #1E88E5;
+        color: white;
+    }
+    .stTextArea textarea {
+        border-radius: 20px;
+        border: 1px solid #BDBDBD;
+        padding: 15px;
+    }
+    .stButton>button {
+        border-radius: 20px;
+        padding: 5px 25px;
+        background-color: #1E88E5;
+        color: white;
+        font-weight: 600;
+    }
+    .feature-card {
+        background-color: #808080;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+        height: 100%;
+    }
+    .feature-icon {
+        font-size: 1.8rem;
+        color: #1E88E5;
+        margin-bottom: 10px;
+    }
+    .divider {
+        margin-top: 30px;
+        margin-bottom: 20px;
+        border-top: 1px solid #EEEEEE;
+    }
+    .footer {
+        text-align: center;
+        color: #9E9E9E;
+        font-size: 0.8rem;
+        padding: 20px 0;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Create tabs for different travel planning functions
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Flight Search", "Hotels", "Attractions", "Restaurants", "Transportation"])
+# Initialize session state variables
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+if 'showing_welcome' not in st.session_state:
+    st.session_state.showing_welcome = True
 
-with tab1:
-    st.header("Search for Flights")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        from_location = st.text_input("From", "New York")
-        date_range = st.text_input("Date Range (YYYY-MM-DD to YYYY-MM-DD)", "2025-05-01 to 2025-05-15")
-    
-    with col2:
-        to_location = st.text_input("To", "Paris")
-    
-    if st.button("Search Flights"):
-        with st.spinner("Searching for flights..."):
-            query = f"Find flights from {from_location} to {to_location} for dates {date_range}"
-            result = run_async(query)
-            
-            if "error" in result:
-                st.error(f"Error: {result['error']}")
-                st.write(result.get("response", ""))
-            else:
-                st.success("Flights found!")
-                try:
-                    flights = json.loads(result["result"])
-                    for i, flight in enumerate(flights):
-                        with st.expander(f"Flight {i+1}: {flight['airline']} - ${flight['price_usd']}"):
-                            st.write(f"**From:** {flight['from']}")
-                            st.write(f"**To:** {flight['to']}")
-                            st.write(f"**Departure:** {flight['departure_date']}")
-                            st.write(f"**Return:** {flight['return_date']}")
-                            st.markdown(f"[Book Now]({flight['mock_booking_link']})")
-                except:
-                    st.write(result["result"])
-
-with tab2:
-    st.header("Find Hotels")
-    hotel_location = st.text_input("City", "Paris", key="hotel_city")
-    budget_options = st.radio("Budget", ["low", "medium", "high"], horizontal=True)
-    
-    if st.button("Find Hotels"):
-        with st.spinner("Searching for hotels..."):
-            query = f"Recommend hotels in {hotel_location} with a {budget_options} budget"
-            result = run_async(query)
-            
-            if "error" in result:
-                st.error(f"Error: {result['error']}")
-                st.write(result.get("response", ""))
-            else:
-                st.success("Hotels found!")
-                try:
-                    hotels = json.loads(result["result"])
-                    for hotel in hotels:
-                        with st.expander(f"{hotel['name']} - ${hotel['price_per_night_usd']}/night"):
-                            st.write(f"**Location:** {hotel['location']}")
-                            st.write(f"**Rating:** {hotel['rating']}⭐")
-                            st.markdown(f"[Book Now]({hotel['mock_booking_link']})")
-                except:
-                    st.write(result["result"])
-
-with tab3:
-    st.header("Discover Attractions")
-    attraction_location = st.text_input("City", "Rome", key="attraction_city")
-    
-    if st.button("Find Attractions"):
-        with st.spinner("Finding attractions..."):
-            query = f"Recommend attractions in {attraction_location}"
-            result = run_async(query)
-            
-            if "error" in result:
-                st.error(f"Error: {result['error']}")
-                st.write(result.get("response", ""))
-            else:
-                st.success("Attractions found!")
-                try:
-                    attractions = json.loads(result["result"])
-                    for attraction in attractions:
-                        with st.expander(f"{attraction['name']}"):
-                            st.write(f"**Location:** {attraction['location']}")
-                            st.write(f"**Description:** {attraction['description']}")
-                except:
-                    st.write(result["result"])
-
-with tab4:
-    st.header("Find Restaurants")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        restaurant_location = st.text_input("City", "Paris", key="restaurant_city")
-    
-    with col2:
-        cuisine_type = st.selectbox("Cuisine", ["any", "italian", "japanese", "french", "american", "chinese"])
-    
-    if st.button("Search Restaurants"):
-        with st.spinner("Finding restaurants..."):
-            query = f"Recommend {cuisine_type} restaurants in {restaurant_location}"
-            result = run_async(query)
-            
-            if "error" in result:
-                st.error(f"Error: {result['error']}")
-                st.write(result.get("response", ""))
-            else:
-                st.success("Restaurants found!")
-                try:
-                    restaurants = json.loads(result["result"])
-                    for restaurant in restaurants:
-                        with st.expander(f"{restaurant['name']} - {restaurant['rating']}⭐"):
-                            st.write(f"**Location:** {restaurant['location']}")
-                            st.write(f"**Cuisine:** {restaurant['cuisine']}")
-                except:
-                    st.write(result["result"])
-
-with tab5:
-    st.header("Transportation Options")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        transport_from = st.text_input("From", "Rome", key="transport_from")
-    
-    with col2:
-        transport_to = st.text_input("To", "Florence", key="transport_to")
-    
-    if st.button("Find Transport Options"):
-        with st.spinner("Finding transportation options..."):
-            query = f"Show transport options from {transport_from} to {transport_to}"
-            result = run_async(query)
-            
-            if "error" in result:
-                st.error(f"Error: {result['error']}")
-                st.write(result.get("response", ""))
-            else:
-                st.success("Transportation options found!")
-                try:
-                    options = json.loads(result["result"])
-                    for mode, details in options.items():
-                        st.write(f"**{mode.capitalize()}:** Duration: {details['duration']}, Price: ${details['price_usd']}")
-                except:
-                    st.write(result["result"])
-
-# Side panel for travel advice
+# Sidebar content
 with st.sidebar:
-    st.header("Travel Advice")
-    destination = st.text_input("Where are you planning to visit?", "Greece")
+    # st.image("https://via.placeholder.com/150x80?text=TravelBuddy", width=150)
+    st.markdown("### How can I help you?")
     
-    if st.button("Get Seasonal Advice"):
-        with st.spinner("Getting travel advice..."):
-            query = f"What is the seasonal travel advice for {destination}?"
-            result = run_async(query)
-            
-            if "error" in result:
-                st.error(f"Error: {result['error']}")
-            else:
-                st.info(result["result"])
+    st.markdown("#### I can assist with:")
+    features = {
+        "✈️ Flight Search": "Find available flights between destinations",
+        "🏨 Hotel Recommendations": "Get hotel suggestions based on location and budget",
+        "🗿 Local Attractions": "Discover must-visit places at your destination",
+        "🍽️ Restaurant Tips": "Find the best dining options",
+        "🚌 Transport Options": "Compare ways to get around",
+        "🌤️ Seasonal Advice": "Learn the best time to visit"
+    }
     
-    # Add some general travel tips
-    st.subheader("Travel Tips")
-    tips = [
-        "Remember to check visa requirements before traveling",
-        "Get travel insurance for peace of mind",
-        "Make copies of important documents",
-        "Check COVID-19 restrictions and requirements"
-    ]
-    for tip in tips:
-        st.markdown(f"• {tip}")
+    for feature, description in features.items():
+        st.markdown(f"**{feature}**  \n{description}")
+    
+    st.markdown("---")
+    st.markdown("##### Sample Queries")
+    
+    # Example query buttons
+    if st.button("Find flights from NYC to Paris in May 2025"):
+        st.session_state.query_input = "Find flights from New York to Paris from 2025-05-01 to 2025-05-14"
+        st.session_state.showing_welcome = False
+    
+    if st.button("Recommend hotels in Rome"):
+        st.session_state.query_input = "What are some good hotels in Rome with a medium budget?"
+        st.session_state.showing_welcome = False
+    
+    if st.button("What to do in Tokyo?"):
+        st.session_state.query_input = "What are the top attractions to visit in Tokyo?"
+        st.session_state.showing_welcome = False
 
-# Footer
-st.markdown("---")
-st.caption("Travel Planner App - Plan your perfect vacation with AI assistance")
+# Main content area
+col1, col2, col3 = st.columns([1, 10, 1])
+with col2:
+    st.markdown('<h1 class="main-header">TravelBuddy AI Assistant</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Your personal AI travel planner for seamless trip organization</p>', unsafe_allow_html=True)
+
+    # Query input area
+    with st.container():
+        with st.form(key="query_form", clear_on_submit=False):
+            # Use session state for input if available
+            query_value = st.session_state.get('query_input', '')
+            user_query = st.text_area(
+                "What would you like to know about your travel plans?", 
+                value=query_value,
+                height=100, 
+                placeholder="e.g., I want to travel from New York to Paris next summer. What flights are available?"
+            )
+            
+            col1, col2 = st.columns([5, 1])
+            with col2:
+                submit_button = st.form_submit_button("Send")
+            
+            # Clear the session state input after retrieving it
+            if 'query_input' in st.session_state:
+                del st.session_state.query_input
+
+    # Show welcome message or process query
+    if st.session_state.showing_welcome and not submit_button:
+        st.markdown("""
+        <div class="feature-card">
+            <h3>👋 Welcome to TravelBuddy!</h3>
+            <p>I'm your AI travel assistant, ready to help plan your perfect trip. Ask me about flights, hotels, 
+            local attractions, restaurants, transportation options, or seasonal travel advice.</p>
+            <p>Try asking questions like:</p>
+            <ul>
+                <li>"What flights are available from London to Tokyo in June?"</li>
+                <li>"Recommend me luxury hotels in Dubai"</li>
+                <li>"What are the must-see attractions in Rome?"</li>
+                <li>"How should I get around in Bangkok?"</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Feature cards in 3 columns
+        st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+        st.markdown("### How TravelBuddy Works")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("""
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h4>Ask Naturally</h4>
+                <p>Simply type your travel questions in natural language. No need for specific formats or keywords.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with col2:
+            st.markdown("""
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h4>Smart Analysis</h4>
+                <p>Our AI analyzes your query and connects to the right travel tools and databases for accurate information.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with col3:
+            st.markdown("""
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <h4>Personalized Results</h4>
+                <p>Get customized travel recommendations based on your preferences and requirements.</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Process the query when the form is submitted
+    if submit_button and user_query:
+        # Add user query to chat history
+        st.session_state.chat_history.append({"role": "user", "content": user_query})
+        st.session_state.showing_welcome = False
+        
+        # Show a spinner while processing
+        with st.spinner("Planning your perfect trip..."):
+            response = run_async(user_query)
+        
+        # Add assistant response to chat history
+        st.session_state.chat_history.append({"role": "assistant", "content": response})
+
+    # Display chat history
+    if not st.session_state.showing_welcome or (submit_button and user_query):
+        st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
+        for message in st.session_state.chat_history:
+            if message["role"] == "user":
+                st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<div class='assistant-message'>{message['content']}</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# Add footer
+st.markdown("<div class='footer'>TravelBuddy AI Assistant • Powered by advanced AI technology • Not using real travel data</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     pass

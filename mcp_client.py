@@ -36,20 +36,24 @@ def llm_client(message:str):
 
 def get_prompt_to_identify_tool_and_arguments(query,tools):
     tools_description = "\n".join([f"- {tool.name}, {tool.description}, {tool.inputSchema} " for tool in tools])
-    return  ("You are a helpful assistant with access to these tools:\n\n"
-                f"{tools_description}\n"
-                "Choose the appropriate tool based on the user's question. \n"
-                f"User's Question: {query}\n"                
-                "If no tool is needed, reply directly.\n\n"
-                "IMPORTANT: When you need to use a tool, you must ONLY respond with "                
-                "the exact JSON object format below, nothing else:\n"
-                "Keep the values in str "
-                "{\n"
-                '    "tool": "tool-name",\n'
-                '    "arguments": {\n'
-                '        "argument-name": "value"\n'
-                "    }\n"
-                "}\n\n")
+    return  ("You are a helpful travel assistant with access to these tools:\n\n"
+        f"{tools_description}\n\n"
+        "Choose the appropriate tool based on the user's question and extract all necessary parameters.\n"
+        f"User's Question: {query}\n\n"
+        "If no tool is needed, reply directly.\n\n"
+        "IMPORTANT: When you need to use a tool, you must ONLY respond with "
+        "the exact JSON object format below, nothing else:\n"
+        "{\n"
+        '    "tool": "tool-name",\n'
+        '    "arguments": {\n'
+        '        "argument-name": "value"\n'
+        "    }\n"
+        "}\n\n"
+        "Format requirements:\n"
+        "- For dates, use YYYY-MM-DD format\n"
+        "- City names should be full names (e.g., 'New York' not 'NY')\n"
+        "- For date ranges, use the format 'YYYY-MM-DD to YYYY-MM-DD'"
+    )
 
 
 async def run_tool_query(query: str):
@@ -86,13 +90,6 @@ async def run_tool_query(query: str):
             
             except Exception as e:
                 return {"error": str(e), "response": llm_response}
-
-            # tool_call = json.loads(llm_response)
-
-            # result = await session.call_tool(tool_call["tool"], arguments=tool_call["arguments"])
-
-            # print(f"BMI for weight {tool_call["arguments"]["weight_kg"]}kg and height {tool_call["arguments"]["height_m"]}m is {result.content[0].text}")
-
 
 # Main function to run asyncio event loop
 def run_async(query):

@@ -258,26 +258,6 @@ with col2:
             </div>
             """, unsafe_allow_html=True)
     
-    # # Process the query when the form is submitted
-    # if submit_button and user_query:
-    #     # Add user query to chat history
-    #     st.session_state.chat_history.append({"role": "user", "content": user_query})
-    #     st.session_state.showing_welcome = False
-        
-    #     # Record the search query in context
-    #     context_manager.add_search(user_query)
-        
-    #     # Show a spinner while processing
-    #     with st.spinner("Planning your perfect trip..."):
-    #         # Pass the context to the MCP client
-    #         response = run_async(user_query, context_manager.to_dict())
-        
-    #     # Add assistant response to chat history
-    #     assistant_message = {"role": "assistant", "content": response}
-    #     st.session_state.chat_history.append(assistant_message)
-        
-    #     # Update the context based on the assistant's response
-    #     context_manager.update_context(assistant_message)
     if submit_button and user_query:
             # Add user query to chat history
             st.session_state.chat_history.append({"role": "user", "content": user_query})

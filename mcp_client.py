@@ -14,76 +14,6 @@ logger = logging.getLogger(__name__)
 
 server_params = StdioServerParameters(command="python", args=["mcp_server.py"])
 
-# def llm_client(message: str, context=None):
-#     """
-#     Send a message to the LLM and return the response.
-#     Includes user context for better personalization.
-#     """
-#     try:
-#         logger.info("Sending request to OpenAI API")
-
-#         # Initialize the OpenAI client
-#         openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        
-#         # Create system message with context awareness
-#         system_message = "You are a knowledgeable travel assistant with expertise in flight information. "
-        
-#         if context:
-#             # Add contextual information if available
-#             system_message += "Here's information about the user I want you to use to personalize your response:\n"
-            
-#             if context.get("location"):
-#                 system_message += f"- Their current location seems to be {context['location']}\n"
-            
-#             # Add current trip information
-#             current_trip = context.get("current_trip", {})
-#             if current_trip.get("origin") and current_trip.get("destination"):
-#                 system_message += f"- They are planning a trip from {current_trip['origin']} to {current_trip['destination']}\n"
-                
-#                 if current_trip.get("date_range"):
-#                     system_message += f"- Their travel dates are: {current_trip['date_range']}\n"
-                
-#                 if current_trip.get("budget"):
-#                     system_message += f"- Their budget level is: {current_trip['budget']}\n"
-            
-#             # Add mentioned destinations
-#             mentioned = context.get("mentioned_destinations", [])
-#             if mentioned:
-#                 system_message += f"- Destinations mentioned in conversation: {', '.join(mentioned[:5])}\n"
-            
-#             # Add recent searches for context
-#             recent = context.get("recent_searches", [])
-#             if recent:
-#                 system_message += f"- Their recent searches include: {recent[0]}\n"
-        
-#         system_message += "\nWhen sharing travel information, write in a natural, conversational style. Include: \n - Common departure airports for the origin city \n - Typical price ranges and popular airlines for this route \n - If specific flight data is available, highlight the best deals with exact dates and prices \n - Include the provided booking links for each flight option, hotel option, accommodation option and restaurant option when available \n - Alternatively, Always provide direct links to relevant booking sites based on the query:\n   * For flights: suggest checking booking sites like Skyscanner, Expedia, or Google Flights\n   * For hotels: suggest checking booking sites like Booking.com, Hotels.com, or Airbnb\n   * For attractions: suggest checking booking sites like TripAdvisor, GetYourGuide, or Viator\n   * For restaurants: suggest checking booking sites like TripAdvisor, OpenTable, or Yelp\n - Always offer to help with related travel needs (hotels, attractions, etc.)"
-        
-#         # NEW: Add instruction for providing realistic data even for partial queries
-#         system_message += "\n\nIMPORTANT: When the user provides incomplete information (like just a destination without origin or dates), don't just ask for more information. Instead, provide helpful general information about typical flights to that destination including:\n- Common departure cities (New York, London, etc.)\n- Typical price ranges (e.g., '$600-900 roundtrip')\n- Popular airlines for this route\n- Example deals like 'There's a flight on Norwegian leaving New York 18th April to Athens, and back on 30th April for $403'\n- Always include realistic pricing data and specific flight examples\n\nFormat your response as if you're a helpful travel agent having a conversation, not just listing data. Do not say you are an AI or language model. Just sound like a real assistant."
-        
-#         # Send the message to the LLM
-#         response = openai_client.chat.completions.create(
-#             model="gpt-3.5-turbo",
-#             messages=[
-#                 {"role": "system", "content": system_message},
-#                 {"role": "user", "content": message}
-#             ],
-#             temperature=0.7,
-#             max_tokens=1000,
-#             top_p=0.9,
-#             frequency_penalty=0.2,
-#             presence_penalty=0.3
-#         )
-        
-#         # Extract and return the response content
-#         content = response.choices[0].message.content 
-
-#         logger.info(f"Received response from LLM: {content[:100]}...")  
-
-#         return content
-#     except Exception as e:
-#         logger.error(f"Error in LLM client: {e}")
-#         return f"Error communicating with AI service: {str(e)}"
 def llm_client(message: str, context=None):
         """
         Send a message to the LLM and return the response.
@@ -378,37 +308,11 @@ def run_async(query, context=None):
         context (dict, optional): User context for personalized responses
     """
     try:
-        # Check if we have a very basic query with just a destination
-        # If so, enhance it with some default information to get a better response
+        # Check if we have a very basic query with just a destination. If so, enhance it with some default information to get a better response
         words = query.lower().split()
 
         # Default location to use if none available in context
         default_origin = "New York"
-
-        # # For simple destination queries, pass directly to the LLM instead of the tool workflow
-        # if (len(words) <= 7 and 
-        #     ("flight" in query.lower() or "fly" in query.lower()) and 
-        #     "to " in query.lower() and 
-        #     "from " not in query.lower()):
-            
-        #     # Use contextual origin if available
-        #     origin = default_origin
-        #     if context and context.get("current_trip", {}).get("origin"):
-        #         origin = context["current_trip"]["origin"]
-        #     elif context and context.get("location"):
-        #         origin = context["location"]
-                
-        #     enhanced_query = f"Tell me about flights from {origin} to {query.lower().split('to ')[1].strip()}. Provide specific examples with dates and prices."
-        #     return llm_client(enhanced_query, context)
-        
-        # # Otherwise, proceed with normal tool selection flow
-        # result = asyncio.run(run_tool_query(query, context))
-        # logger.info(f"Final result type: {type(result)}")
-        # logger.info(f"Final result preview: {str(result)[:100]}")
-        
-        # if isinstance(result, dict) and "result" in result:
-        #     return result["result"]
-        # return result
 
         # Check if this is a simple destination query that might be handled by LLM
         if (len(words) <= 7 and 

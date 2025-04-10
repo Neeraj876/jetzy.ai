@@ -151,15 +151,6 @@ class ContextManager:
         """
         Extract date ranges from text using regex patterns
         """
-        # # Look for YYYY-MM-DD to YYYY-MM-DD format
-        # standard_format = re.findall(r'\d{4}-\d{2}-\d{2}\s+to\s+\d{4}-\d{2}-\d{2}', text)
-        
-        # # Look for month year formats (e.g., "May 2025")
-        # month_year_pattern = r'(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}'
-        # month_year_matches = re.findall(month_year_pattern, text, re.IGNORECASE)
-        
-        # return standard_format + month_year_matches
-
         date_ranges = []
     
         # Standard format: YYYY-MM-DD to YYYY-MM-DD
@@ -256,41 +247,7 @@ class ContextManager:
             budget = self.extract_budget(text)
             if budget:
                 self.update_current_trip(budget=budget)
-    
-    # def update_context_from_text(self, text: str) -> None:
-    #     """
-    #     Update context by extracting information from text
-    #     """
-    #     # Extract destinations
-    #     destinations = self.extract_destinations(text)
-    #     for dest in destinations:
-    #         self.add_mentioned_destination(dest)
-        
-    #     # Try to determine if any are origin or destination for current trip
-    #     if len(destinations) >= 2:
-    #         # Look for patterns like "from X to Y" or "X to Y"
-    #         from_to_pattern = re.search(r'from\s+([A-Za-z\s]+)\s+to\s+([A-Za-z\s]+)', text, re.IGNORECASE)
-    #         if from_to_pattern:
-    #             origin_text = from_to_pattern.group(1).strip()
-    #             dest_text = from_to_pattern.group(2).strip()
-                
-    #             # Match with extracted destinations
-    #             origin = next((d for d in destinations if d.lower() in origin_text.lower()), None)
-    #             destination = next((d for d in destinations if d.lower() in dest_text.lower()), None)
-                
-    #             if origin and destination:
-    #                 self.update_current_trip(origin=origin, destination=destination)
-        
-    #     # Extract date ranges
-    #     date_ranges = self.extract_date_ranges(text)
-    #     if date_ranges:
-    #         self.update_current_trip(date_range=date_ranges[0])
-        
-    #     # Extract budget
-    #     budget = self.extract_budget(text)
-    #     if budget:
-    #         self.update_current_trip(budget=budget)
-    
+
     def update_context(self, message: Dict[str, str]) -> None:
         """
         Update the context based on a message
@@ -311,10 +268,6 @@ class ContextManager:
         """
         Convert the context to a dictionary
         """
-        # context_dict = self.get_user_context().copy()
-        # # Convert set to list for serialization
-        # context_dict["mentioned_destinations"] = list(context_dict["mentioned_destinations"])
-        # return context_dict
         try:
 
             context_dict = self.get_user_context().copy()

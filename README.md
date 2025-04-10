@@ -32,8 +32,8 @@ project/
 
 1. Clone this repository
 ```bash
-git clone https://github.com/Neeraj876/jetzy.ai.git
-cd jetzy.ai
+git clone https://github.com/curriculo-tech/jetzy
+cd jetzy
 ```
 
 2. Install dependencies

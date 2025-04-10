@@ -211,38 +211,85 @@ class ContextManager:
         return None
     
     def update_context_from_text(self, text: str) -> None:
-        """
-        Update context by extracting information from text
-        """
-        # Extract destinations
-        destinations = self.extract_destinations(text)
-        for dest in destinations:
-            self.add_mentioned_destination(dest)
+            """
+            Update context by extracting information from text
+            """
+            # Extract destinations
+            destinations = self.extract_destinations(text)
+            for dest in destinations:
+                self.add_mentioned_destination(dest)
+            
+            # Try to determine if any are origin or destination for current trip
+            if len(destinations) >= 2:
+                # Look for patterns like "from X to Y" or "X to Y"
+                from_to_pattern = re.search(r'from\s+([A-Za-z\s]+)\s+to\s+([A-Za-z\s]+)', text, re.IGNORECASE)
+                if from_to_pattern:
+                    origin_text = from_to_pattern.group(1).strip()
+                    dest_text = from_to_pattern.group(2).strip()
+                    
+                    # Match with extracted destinations
+                    origin = next((d for d in destinations if d.lower() in origin_text.lower()), None)
+                    destination = next((d for d in destinations if d.lower() in dest_text.lower()), None)
+                    
+                    if origin and destination:
+                        self.update_current_trip(origin=origin, destination=destination)
+            # NEW: Handle just destination scenario with "to X" pattern without "from"
+            elif len(destinations) == 1:
+                to_pattern = re.search(r'(?:to|in|for)\s+([A-Za-z\s]+)', text, re.IGNORECASE)
+                if to_pattern:
+                    dest_text = to_pattern.group(1).strip()
+                    destination = next((d for d in destinations if d.lower() in dest_text.lower()), None)
+                    if destination:
+                        # Set as destination in current trip
+                        self.update_current_trip(destination=destination)
+                        
+                        # If location is set and no origin, use location as default origin
+                        if self.get_user_context()["location"] and not self.get_user_context()["current_trip"]["origin"]:
+                            self.update_current_trip(origin=self.get_user_context()["location"])
+            
+            # Extract date ranges
+            date_ranges = self.extract_date_ranges(text)
+            if date_ranges:
+                self.update_current_trip(date_range=date_ranges[0])
+            
+            # Extract budget
+            budget = self.extract_budget(text)
+            if budget:
+                self.update_current_trip(budget=budget)
+    
+    # def update_context_from_text(self, text: str) -> None:
+    #     """
+    #     Update context by extracting information from text
+    #     """
+    #     # Extract destinations
+    #     destinations = self.extract_destinations(text)
+    #     for dest in destinations:
+    #         self.add_mentioned_destination(dest)
         
-        # Try to determine if any are origin or destination for current trip
-        if len(destinations) >= 2:
-            # Look for patterns like "from X to Y" or "X to Y"
-            from_to_pattern = re.search(r'from\s+([A-Za-z\s]+)\s+to\s+([A-Za-z\s]+)', text, re.IGNORECASE)
-            if from_to_pattern:
-                origin_text = from_to_pattern.group(1).strip()
-                dest_text = from_to_pattern.group(2).strip()
+    #     # Try to determine if any are origin or destination for current trip
+    #     if len(destinations) >= 2:
+    #         # Look for patterns like "from X to Y" or "X to Y"
+    #         from_to_pattern = re.search(r'from\s+([A-Za-z\s]+)\s+to\s+([A-Za-z\s]+)', text, re.IGNORECASE)
+    #         if from_to_pattern:
+    #             origin_text = from_to_pattern.group(1).strip()
+    #             dest_text = from_to_pattern.group(2).strip()
                 
-                # Match with extracted destinations
-                origin = next((d for d in destinations if d.lower() in origin_text.lower()), None)
-                destination = next((d for d in destinations if d.lower() in dest_text.lower()), None)
+    #             # Match with extracted destinations
+    #             origin = next((d for d in destinations if d.lower() in origin_text.lower()), None)
+    #             destination = next((d for d in destinations if d.lower() in dest_text.lower()), None)
                 
-                if origin and destination:
-                    self.update_current_trip(origin=origin, destination=destination)
+    #             if origin and destination:
+    #                 self.update_current_trip(origin=origin, destination=destination)
         
-        # Extract date ranges
-        date_ranges = self.extract_date_ranges(text)
-        if date_ranges:
-            self.update_current_trip(date_range=date_ranges[0])
+    #     # Extract date ranges
+    #     date_ranges = self.extract_date_ranges(text)
+    #     if date_ranges:
+    #         self.update_current_trip(date_range=date_ranges[0])
         
-        # Extract budget
-        budget = self.extract_budget(text)
-        if budget:
-            self.update_current_trip(budget=budget)
+    #     # Extract budget
+    #     budget = self.extract_budget(text)
+    #     if budget:
+    #         self.update_current_trip(budget=budget)
     
     def update_context(self, message: Dict[str, str]) -> None:
         """

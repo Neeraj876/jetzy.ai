@@ -55,7 +55,10 @@ def llm_client(message: str, context=None):
             if recent:
                 system_message += f"- Their recent searches include: {recent[0]}\n"
         
-        system_message += "\nWhen sharing travel information, write in a natural, conversational style. Include: \n - Common departure airports for the origin city \n - Typical price ranges and popular airlines for this route \n - If specific flight data is available, highlight the best deals with exact dates and prices \n - Include the provided booking links for each flight option, hotel aption, accommodation option and restaurant option when available \n - Alternatively, Always provide direct links to relevant booking sites based on the query:\n   * For flights: suggest checking booking sites like Skyscanner, Expedia, or Google Flights\n   * For hotels: suggest checking booking sites like Booking.com, Hotels.com, or Airbnb\n   * For attractions: suggest checking booking sites like TripAdvisor, GetYourGuide, or Viator\n   * For restaurants: suggest checking booking sites like TripAdvisor, OpenTable, or Yelp\n - Always offer to help with related travel needs (hotels, attractions, etc.) Format your response as if you're a helpful travel agent having a conversation, not just listing data. Do not say you are an AI or language model. Just sound like a real assistant."
+        system_message += "\nWhen sharing travel information, write in a natural, conversational style. Include: \n - Common departure airports for the origin city \n - Typical price ranges and popular airlines for this route \n - If specific flight data is available, highlight the best deals with exact dates and prices \n - Include the provided booking links for each flight option, hotel option, accommodation option and restaurant option when available \n - Alternatively, Always provide direct links to relevant booking sites based on the query:\n   * For flights: suggest checking booking sites like Skyscanner, Expedia, or Google Flights\n   * For hotels: suggest checking booking sites like Booking.com, Hotels.com, or Airbnb\n   * For attractions: suggest checking booking sites like TripAdvisor, GetYourGuide, or Viator\n   * For restaurants: suggest checking booking sites like TripAdvisor, OpenTable, or Yelp\n - Always offer to help with related travel needs (hotels, attractions, etc.)"
+        
+        # NEW: Add instruction for providing realistic data even for partial queries
+        system_message += "\n\nIMPORTANT: When the user provides incomplete information (like just a destination without origin or dates), don't just ask for more information. Instead, provide helpful general information about typical flights to that destination including:\n- Common departure cities (New York, London, etc.)\n- Typical price ranges (e.g., '$600-900 roundtrip')\n- Popular airlines for this route\n- Example deals like 'There's a flight on Norwegian leaving New York 18th April to Athens, and back on 30th April for $403'\n- Always include realistic pricing data and specific flight examples\n\nFormat your response as if you're a helpful travel agent having a conversation, not just listing data. Do not say you are an AI or language model. Just sound like a real assistant."
         
         # Send the message to the LLM
         response = openai_client.chat.completions.create(
@@ -92,6 +95,10 @@ def get_prompt_to_identify_tool_and_arguments(query, tools, context=None):
     if context:
         prompt += "### USER CONTEXT INFO ###\n"
         
+        # Add location if available for better defaults
+        if context.get("location"):
+            prompt += f"- User's current location: {context['location']}\n"
+        
         # Add current trip information
         current_trip = context.get("current_trip", {})
         if current_trip.get("origin") and current_trip.get("destination"):
@@ -110,30 +117,11 @@ def get_prompt_to_identify_tool_and_arguments(query, tools, context=None):
         
         prompt += "### END CONTEXT INFO ###\n\n"
     
-    # # Continue with the rest of the prompt
-    # prompt += "Choose the appropriate tool based on the user's question and extract all necessary parameters.\n"
-    # prompt += f"User's Question: {query}\n\n"
-    # prompt += "If no tool is needed, reply directly with a helpful travel-related answer.\n\n"
-    # prompt += "IMPORTANT: When you need to use a tool, you must ONLY respond with "
-    # prompt += "the exact JSON object format below, nothing else:\n"
-    # prompt += "{\n"
-    # prompt += '    "tool": "tool-name",\n'
-    # prompt += '    "arguments": {\n'
-    # prompt += '        "argument-name": "value"\n'
-    # prompt += "    }\n"
-    # prompt += "}\n\n"
-    # prompt += "Format requirements:\n"
-    # prompt += "- For dates, use YYYY-MM-DD format\n"
-    # prompt += "- City names should be full names (e.g., 'New York' not 'NY')\n"
-    # prompt += "- For date ranges, use the format 'YYYY-MM-DD to YYYY-MM-DD'\n"
-    # prompt += "- Use information from the user context when the user query is vague or refers to previous conversation"
-
     # Guide for when to use tools vs. direct response
-    prompt += "IMPORTANT DECISION RULES:\n"
-    prompt += "1. For vague queries like 'Find me a flight', determine if you have enough context from previous conversation to provide real flight information using a tool.\n"
-    prompt += "2. First check if necessary context (origin, destination, dates) is in USER CONTEXT INFO.\n"
-    prompt += "3. If you have enough context information, use the appropriate tool to provide specific results.\n"
-    prompt += "4. If you don't have enough context for a tool call, respond directly with general information and include relevant booking website links.\n\n"
+    prompt += "DECISION GUIDE:\n"
+    prompt += "1. For flight queries: If origin, destination and dates are available (either from the query or context), use search_flights.\n"
+    prompt += "2. If the query is vague (like 'Find me flights to Paris'), DON'T use a tool. Instead, provide a rich informative response with general flight information like typical prices, airlines, and sample itineraries.\n"
+    prompt += "3. For hotel, attraction, or restaurant queries: If location is provided, use the appropriate tool.\n\n"
     
     # Continue with the rest of the prompt
     prompt += f"User's Question: {query}\n\n"
@@ -149,7 +137,8 @@ def get_prompt_to_identify_tool_and_arguments(query, tools, context=None):
     prompt += "- For dates, use YYYY-MM-DD format\n"
     prompt += "- City names should be full names (e.g., 'New York' not 'NY')\n"
     prompt += "- For date ranges, use the format 'YYYY-MM-DD to YYYY-MM-DD'\n"
-    prompt += "- Use information from the user context when the user query is vague or refers to previous conversation"
+    prompt += "- Use information from the user context when the user query is vague or refers to previous conversation\n"
+    prompt += "- If critical information is missing (origin, dates) and not in context, DON'T use a tool. Instead, give a helpful informative response with realistic flight details."
     
     return prompt
     
@@ -192,27 +181,12 @@ async def run_tool_query(query: str, context=None):
                             if not flights_data:
                                 return "I searched but couldn't find any flights matching your criteria. Would you like to try different dates or destinations?"
                             
-                            # # Check if the result is a list or a single object
-                            # if isinstance(flights_data, list):
-                            #     flights = flights_data
-                            # elif:
-                            #     # If it's a single flight object, put it in a list
-                            #     flights = [flights_data]
-                            # else:
-                            #     raise ValueError("Unexpected response format")
-                            
                             # Convert to list if a single flight was returned
-                            # if isinstance(flights_data, dict) and all(key in flights_data for key in ['airline', 'price_usd']):
                             if isinstance(flights_data, dict):
                                 flights = [flights_data]  # Single flight object
                             elif isinstance(flights_data, list):
                                 flights = flights_data    # Multiple flights
                             else:
-                                # If unexpected format but has 'flights' key
-                                # if isinstance(flights_data, dict) and 'flights' in flights_data:
-                                #     flights = flights_data['flights']
-                                # else:
-                                #     raise ValueError(f"Unexpected flight data format: {type(flights_data)}")
                                 logger.warning(f"Unexpected flight data type: {type(flights_data)}")
                                 return "I couldn't process the flight search results. Would you like general information about this route instead?"
                                 
@@ -308,7 +282,7 @@ async def run_tool_query(query: str, context=None):
                     else:
                         # For other tools, return the raw response
                         logger.warning(f"Unhandled tool: {tool_call['tool']}")
-                        return "⚠️ Sorry, I couldn’t handle that request right now."
+                        return "⚠️ Sorry, I couldn't handle that request right now."
                     
                 except json.JSONDecodeError:
                     # If we can't parse JSON, the LLM gave a direct response
@@ -328,7 +302,31 @@ def run_async(query, context=None):
         context (dict, optional): User context for personalized responses
     """
     try:
-        result = asyncio.run(run_tool_query(query))
+        # Check if we have a very basic query with just a destination
+        # If so, enhance it with some default information to get a better response
+        words = query.lower().split()
+        
+        # Default location to use if none available in context
+        default_origin = "New York"
+        
+        # For simple destination queries, pass directly to the LLM instead of the tool workflow
+        if (len(words) <= 7 and 
+            ("flight" in query.lower() or "fly" in query.lower()) and 
+            "to " in query.lower() and 
+            "from " not in query.lower()):
+            
+            # Use contextual origin if available
+            origin = default_origin
+            if context and context.get("current_trip", {}).get("origin"):
+                origin = context["current_trip"]["origin"]
+            elif context and context.get("location"):
+                origin = context["location"]
+                
+            enhanced_query = f"Tell me about flights from {origin} to {query.lower().split('to ')[1].strip()}. Provide specific examples with dates and prices."
+            return llm_client(enhanced_query, context)
+        
+        # Otherwise, proceed with normal tool selection flow
+        result = asyncio.run(run_tool_query(query, context))
         logger.info(f"Final result type: {type(result)}")
         logger.info(f"Final result preview: {str(result)[:100]}")
         

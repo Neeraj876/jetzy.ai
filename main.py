@@ -1,6 +1,7 @@
 import streamlit as st
 from dotenv import load_dotenv
 from mcp_client import run_async
+from context_manager import ContextManager
 
 # Load environment variables
 load_dotenv()
@@ -103,8 +104,17 @@ st.markdown("""
         font-size: 0.8rem;
         padding: 20px 0;
     }
+    .context-panel {
+        background-color: #f0f8ff;
+        border-radius: 10px;
+        padding: 10px;
+        margin-top: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# Initialize context manager
+context_manager = ContextManager()
 
 # Initialize session state variables
 if 'chat_history' not in st.session_state:
@@ -114,7 +124,6 @@ if 'showing_welcome' not in st.session_state:
 
 # Sidebar content
 with st.sidebar:
-    # st.image("https://via.placeholder.com/150x80?text=TravelBuddy", width=150)
     st.markdown("### How can I help you?")
     
     st.markdown("#### I can assist with:")
@@ -129,6 +138,33 @@ with st.sidebar:
     
     for feature, description in features.items():
         st.markdown(f"**{feature}**  \n{description}")
+    
+    st.markdown("---")
+    
+    # Display user context in the sidebar
+    user_context = context_manager.get_user_context()
+    with st.expander("Your Travel Context", expanded=False):
+        if user_context["location"]:
+            st.write(f"📍 Your location: {user_context['location']}")
+        
+        if user_context["preferences"]:
+            st.write("🌟 Your preferences:")
+            for key, value in user_context["preferences"].items():
+                st.write(f"- {key}: {value}")
+        
+        if user_context["mentioned_destinations"]:
+            st.write("🌍 Destinations discussed:")
+            for dest in user_context["mentioned_destinations"]:
+                st.write(f"- {dest}")
+        
+        if user_context["recent_searches"]:
+            st.write("🔍 Recent searches:")
+            for search in user_context["recent_searches"][:3]:
+                st.write(f"- {search}")
+        
+        if st.button("Clear Travel Context"):
+            context_manager.clear_context()
+            st.rerun()
     
     st.markdown("---")
     st.markdown("##### Sample Queries")
@@ -222,18 +258,48 @@ with col2:
             </div>
             """, unsafe_allow_html=True)
     
-    # Process the query when the form is submitted
+    # # Process the query when the form is submitted
+    # if submit_button and user_query:
+    #     # Add user query to chat history
+    #     st.session_state.chat_history.append({"role": "user", "content": user_query})
+    #     st.session_state.showing_welcome = False
+        
+    #     # Record the search query in context
+    #     context_manager.add_search(user_query)
+        
+    #     # Show a spinner while processing
+    #     with st.spinner("Planning your perfect trip..."):
+    #         # Pass the context to the MCP client
+    #         response = run_async(user_query, context_manager.to_dict())
+        
+    #     # Add assistant response to chat history
+    #     assistant_message = {"role": "assistant", "content": response}
+    #     st.session_state.chat_history.append(assistant_message)
+        
+    #     # Update the context based on the assistant's response
+    #     context_manager.update_context(assistant_message)
     if submit_button and user_query:
-        # Add user query to chat history
-        st.session_state.chat_history.append({"role": "user", "content": user_query})
-        st.session_state.showing_welcome = False
-        
-        # Show a spinner while processing
-        with st.spinner("Planning your perfect trip..."):
-            response = run_async(user_query)
-        
-        # Add assistant response to chat history
-        st.session_state.chat_history.append({"role": "assistant", "content": response})
+            # Add user query to chat history
+            st.session_state.chat_history.append({"role": "user", "content": user_query})
+            st.session_state.showing_welcome = False
+            
+            # Update context with the current query before running the tool
+            context_manager.update_context_from_text(user_query)
+            
+            # Record the search query in context
+            context_manager.add_search(user_query)
+            
+            # Show a spinner while processing
+            with st.spinner("Planning your perfect trip..."):
+                # Pass the context to the MCP client
+                response = run_async(user_query, context_manager.to_dict())
+            
+            # Add assistant response to chat history
+            assistant_message = {"role": "assistant", "content": response}
+            st.session_state.chat_history.append(assistant_message)
+            
+            # Update the context based on the assistant's response
+            context_manager.update_context(assistant_message)
 
     # Display chat history
     if not st.session_state.showing_welcome or (submit_button and user_query):
@@ -246,7 +312,7 @@ with col2:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # Add footer
-st.markdown("<div class='footer'>TravelBuddy AI Assistant • Powered by advanced AI technology • Not using real travel data</div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>TravelBuddy AI Assistant • Powered by advanced AI technology</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     pass

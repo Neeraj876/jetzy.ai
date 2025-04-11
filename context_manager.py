@@ -17,7 +17,8 @@ class ContextManager:
                 "preferences": {},  # User preferences
                 "recent_searches": [],  # Recent search history
                 "mentioned_destinations": set(),  # Destinations mentioned in conversation
-                "current_trip": {  # Information about currently discussed trip
+                "current_trip": {  
+                    # Information about currently discussed trip
                     "origin": None,
                     "destination": None,
                     "date_range": None,
@@ -55,11 +56,17 @@ class ContextManager:
         Add a search query to recent searches
         """
         # Keep only unique and non-empty searches
+
         if search_query and search_query.strip():
+
+            # Remove existing duplicate
+            if search_query in st.session_state.user_context["recent_searches"]:
+                st.session_state.user_context["recent_searches"].remove(search_query)
+
             # Add to the beginning of the list
             st.session_state.user_context["recent_searches"].insert(0, search_query)
             # Keep only the 5 most recent searches
-            st.session_state.user_context["recent_searches"] = st.session_state.user_context["recent_searches"][:5]
+            st.session_state.user_context["recent_searches"] = st.session_state.user_context["recent_searches"][:10]
         
         self._update_timestamp()
     
@@ -138,13 +145,11 @@ class ContextManager:
             if re.search(r'\b' + re.escape(destination) + r'\b', text, re.IGNORECASE):
                 found_destinations.append(destination)
 
-         # Check for aliases
+        # Check for aliases
         for alias, full_name in destination_aliases.items():
             if re.search(r'\b' + re.escape(alias) + r'\b', text, re.IGNORECASE):
                 found_destinations.append(full_name)
         
-        # return found_destinations
-
         return list(dict.fromkeys(found_destinations))
     
     def extract_date_ranges(self, text: str) -> List[str]:
@@ -212,8 +217,11 @@ class ContextManager:
             
             # Try to determine if any are origin or destination for current trip
             if len(destinations) >= 2:
+                
                 # Look for patterns like "from X to Y" or "X to Y"
                 from_to_pattern = re.search(r'from\s+([A-Za-z\s]+)\s+to\s+([A-Za-z\s]+)', text, re.IGNORECASE)
+
+                # Extracts origin and destination cities using a regex pattern 
                 if from_to_pattern:
                     origin_text = from_to_pattern.group(1).strip()
                     dest_text = from_to_pattern.group(2).strip()
@@ -224,12 +232,20 @@ class ContextManager:
                     
                     if origin and destination:
                         self.update_current_trip(origin=origin, destination=destination)
+                        
             # NEW: Handle just destination scenario with "to X" pattern without "from"
             elif len(destinations) == 1:
+
+                # Look for the pattern "to X"
                 to_pattern = re.search(r'(?:to|in|for)\s+([A-Za-z\s]+)', text, re.IGNORECASE)
+
+                # Extracts destination city using a regex pattern 
                 if to_pattern:
                     dest_text = to_pattern.group(1).strip()
+
+                    # Match with extracted destination
                     destination = next((d for d in destinations if d.lower() in dest_text.lower()), None)
+
                     if destination:
                         # Set as destination in current trip
                         self.update_current_trip(destination=destination)
@@ -254,7 +270,7 @@ class ContextManager:
         """
         content = message.get("content", "")
         
-        # Update context based on text content
+        # Update context based on text content (message)
         self.update_context_from_text(content)
         self._update_timestamp()
     
@@ -266,30 +282,29 @@ class ContextManager:
     
     def to_dict(self) -> Dict[str, Any]:
         """
-        Convert the context to a dictionary
+        Make the user context dictionary safe for JSON serialization. This is useful for saving, logging, sending to an API, or displaying in the UI.
         """
         try:
-
+         
             context_dict = self.get_user_context().copy()
 
-            # Convert set to list for serialization
+            # Convert sets to lists because sets are not JSON serializable
             if isinstance(context_dict.get("mentioned_destinations"), set):
                 context_dict["mentioned_destinations"] = list(context_dict["mentioned_destinations"])
             
-            # Ensure all values are JSON serializable
+            # Ensure all values in the context are JSON serializable
             for key, value in list(context_dict.items()):
                 try:
-                    # Test if the value is JSON serializable
+                    # Test if the value can be serialized to JSON
                     json.dumps({key: value})
                 except (TypeError, OverflowError):
-                    # If not serializable, convert to string representation
+                    # If not, convert it to a string
                     context_dict[key] = str(value)
                     
             return context_dict
         except Exception as e:
-            # logger.error(f"Error serializing context: {e}")
-            # Return minimal context if serialization fails
             return {"error": "Context serialization failed", "last_updated": datetime.datetime.now().isoformat()}
+
     
     def from_dict(self, context_dict: Dict[str, Any]) -> None:
         """

@@ -61,7 +61,7 @@ def search_flights(from_location: str, to_location: str, date_range: str) -> Lis
     return results
 
 @mcp.tool()
-def recommend_hotels(location: str, budget: str = "medium") -> list:
+def recommend_hotels(location: str, budget: str = "medium") -> list[dict]:
     """
     Provides a simulated list of hotel recommendations based on the location and budget.
 
@@ -92,7 +92,7 @@ def recommend_hotels(location: str, budget: str = "medium") -> list:
     ]
 
 @mcp.tool()
-def recommend_attractions(location: str) -> list:
+def recommend_attractions(location: str) -> list[dict]:
     """
     Returns a list of tourist attractions for a given location.
 
@@ -119,7 +119,7 @@ def recommend_attractions(location: str) -> list:
     ]
 
 @mcp.tool()
-def recommend_restaurants(location: str, cuisine: str = "any") -> list:
+def recommend_restaurants(location: str, cuisine: str = "any") -> list[dict]:
     """
     Suggests local restaurants based on location and optionally preferred cuisine.
 
@@ -163,18 +163,22 @@ def transport_options(from_location: str, to_location: str) -> dict:
     """
     return {
         "bus": {
+            "route": f"{from_location} to {to_location}",
             "duration": "10h",
             "price_usd": 45
         },
         "train": {
+            "route": f"{from_location} to {to_location}",
             "duration": "6h",
             "price_usd": 75
         },
         "flight": {
+            "route": f"{from_location} to {to_location}",
             "duration": "1h 30m",
             "price_usd": 150
         },
         "car": {
+            "route": f"{from_location} to {to_location}",
             "duration": "8h",
             "price_usd": 90
         }

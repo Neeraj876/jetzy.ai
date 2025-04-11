@@ -92,7 +92,9 @@ def get_prompt_to_identify_tool_and_arguments(query, tools, context=None):
     tools_description = "\n".join([f"- {tool.name}: {tool.description}" for tool in tools])
     
     # Initial prompt
-    prompt = "You are a helpful travel assistant with access to these tools:\n\n"
+    # prompt = "You are a helpful travel assistant with access to these tools:\n\n"
+    # prompt += f"{tools_description}\n\n"
+    prompt = "You are a travel expert assistant with a focus on providing detailed, actionable information. You have access to these tools:\n\n"
     prompt += f"{tools_description}\n\n"
     
     # Add context information if available
@@ -120,13 +122,45 @@ def get_prompt_to_identify_tool_and_arguments(query, tools, context=None):
             prompt += f"- Destinations discussed: {', '.join(mentioned[:5])}\n"
         
         prompt += "### END CONTEXT INFO ###\n\n"
+
+    # IMPROVED: Guide for comprehensive response with booking links
+    prompt += "RESPONSE GUIDELINES:\n"
+    prompt += "1. CRITICAL: EVERY recommendation you provide MUST include booking/reservation links or ticket purchase options.\n"
+    prompt += "2. For ALL queries about flights, hotels, attractions, restaurants, or transport, use the appropriate tool.\n"
+    prompt += "3. For vague queries, use context to fill in missing details rather than asking for more information.\n"
+    prompt += "4. Your tool selection should match what the user is looking for, even if they don't explicitly mention the exact tool name.\n"
+    prompt += "5. Provide comprehensive details for each option including pricing, ratings, and specific descriptive details.\n\n"
+
+    # Specific guidance for each tool type
+    prompt += "DETAILED TOOL USAGE INSTRUCTIONS:\n"
+    prompt += "- For flight queries: Include origin, destination, flexible dates if specific ones aren't given.\n"
+    prompt += "- For hotel queries: Always include specific hotel names, prices, ratings, descriptions and booking links.\n"
+    prompt += "- For attraction queries: Include details about opening hours, ticket prices, and online booking options.\n"
+    prompt += "- For restaurant queries: Include cuisine type, price range, ratings, and reservation links.\n"
+    prompt += "- For transport options: Include duration, prices, and booking options for each transport mode.\n\n"
+
+    # Tool selection criteria
+    prompt += "TOOL SELECTION CRITERIA:\n"
+    prompt += "- Flight queries (e.g., 'flights to Paris', 'how to get to Greece') → Use search_flights\n"
+    prompt += "- Hotel queries (e.g., 'places to stay in Rome', 'hotels in Tokyo') → Use recommend_hotels\n"
+    prompt += "- Attraction queries (e.g., 'things to do in Barcelona', 'visit museums in London') → Use recommend_attractions\n"
+    prompt += "- Food queries (e.g., 'where to eat in Seoul', 'best restaurants in New York') → Use recommend_restaurants\n"
+    prompt += "- Transportation queries (e.g., 'how to get around Amsterdam', 'transport in Berlin') → Use transport_options\n"
+    prompt += "- Seasonal advice queries (e.g., 'best time to visit Thailand', 'weather in Mexico') → Use seasonal_travel_advice\n\n"
+
+    # Missing information handling
+    prompt += "HANDLING MISSING INFORMATION:\n"
+    prompt += "- If origin location is missing: Use user's current location from context, or default to 'New York'\n"
+    prompt += "- If dates are missing: Create reasonable dates for next month (e.g., 15-22 days from now)\n"
+    prompt += "- If budget is missing: Default to 'medium' budget level\n"
+    prompt += "- IMPORTANT: Always make an intelligent guess for missing information rather than skipping the tool call\n\n"
     
-    # UPDATED: Guide for when to use tools vs. direct response
-    prompt += "DECISION GUIDE:\n"
-    prompt += "1. For flight queries: If origin, destination and dates are available (either from the query or context), use search_flights.\n"
-    prompt += "2. For vague flight queries (like 'Find me flights to Paris'), use search_flights if you can determine an origin from context, creating a reasonable date range for next month if none specified.\n"
-    prompt += "3. For hotel, attraction, or restaurant queries: Use the appropriate tool as long as location is provided.\n"
-    prompt += "4. IMPORTANT: If the query explicitly asks for booking links or requires detailed pricing information, always use a tool rather than providing a general response.\n\n"
+    # # UPDATED: Guide for when to use tools vs. direct response
+    # prompt += "DECISION GUIDE:\n"
+    # prompt += "1. For flight queries: If origin, destination and dates are available (either from the query or context), use the appropriate tool.\n"
+    # prompt += "2. For vague flight queries (like 'Find me flights to Paris'), use the appropriate if you can determine an origin from context, creating a reasonable date range for next month if none specified.\n"
+    # prompt += "3. For hotel, attraction, or restaurant queries: Use the appropriate tool as long as location is provided.\n"
+    # prompt += "4. IMPORTANT: If the query explicitly asks for booking links or requires detailed pricing information, always use a tool rather than providing a general response.\n\n"
     
     # Continue with the rest of the prompt
     prompt += f"User's Question: {query}\n\n"
@@ -181,8 +215,50 @@ async def run_tool_query(query: str, context=None):
                     # Format response based on the tool type
                     if tool_call["tool"] == "search_flights":
                         try:
-                            flights_data = json.loads(tool_data)
+                            # flights_data = json.loads(tool_data)
+                            # # if isinstance(tool_data, str):
+                            # #     try:
+                            # #         return json.loads(tool_data)
+                            # #     except json.JSONDecodeError:
+                            # #         return tool_data  # Return as is if not valid JSON
+                            # # return tool_data 
 
+                            # # Validate the response format
+                            # if not flights_data:
+                            #     return "I searched but couldn't find any flights matching your criteria. Would you like to try different dates or destinations?"
+                            
+                            
+                                                    
+                            # # if isinstance(flights_data, list):
+                            # #     flights = flights_data    
+                            # #     # Multiple flights
+                            # # else:
+                            # #     logger.warning(f"Unexpected flight data type: {type(flights_data)}")
+                            # #     return "I couldn't process the flight search results. Would you like general information about this route instead?"
+                            # # Convert to list if a single flight was returned
+                            # if isinstance(flights_data, dict):
+                            #     flights = [flights_data]  # Single flight object
+                            # elif isinstance(flights_data, list):
+                            #     flights = flights_data    # Multiple flights
+                            # else:
+                            #     logger.warning(f"Unexpected flight data type: {type(flights_data)}")
+                            #     return "I couldn't process the flight search results. Would you like general information about this route instead?"
+                                
+                            # # Validate each flight has the required fields
+                            # for flight in flights:
+                            #     required_fields = ['airline', 'price_usd', 'departure_date', 'return_date']
+                            #     for field in required_fields:
+                            #         if field not in flight:
+                            #             flight[field] = "Not specified"
+
+                            # response = f"I found these flights from {tool_call['arguments']['from_location']} to {tool_call['arguments']['to_location']}:\n\n"
+
+                            # for flight in flights:
+                            #     response += f"• {flight['airline']}: ${flight['price_usd']} - Departs {flight['departure_date']}, Returns {flight['return_date']}\n. Book flight now: {flight['mock_booking_link']}"
+
+                            # response += "\n Would you like me to help you find hotels at your destination?"
+                            flights_data = json.loads(tool_data)
+        
                             # Validate the response format
                             if not flights_data:
                                 return "I searched but couldn't find any flights matching your criteria. Would you like to try different dates or destinations?"
@@ -195,20 +271,43 @@ async def run_tool_query(query: str, context=None):
                             else:
                                 logger.warning(f"Unexpected flight data type: {type(flights_data)}")
                                 return "I couldn't process the flight search results. Would you like general information about this route instead?"
-                                
-                            # Validate each flight has the required fields
+                            
+                            # Origin and destination for the response
+                            origin = tool_call['arguments']['from_location']
+                            destination = tool_call['arguments']['to_location']
+                            
+                            # Create rich, detailed response with proper formatting
+                            response = f"✈️ I found these flights from {origin} to {destination}:\n\n"
+                            
                             for flight in flights:
+                                # Ensure required fields exist
                                 required_fields = ['airline', 'price_usd', 'departure_date', 'return_date']
                                 for field in required_fields:
                                     if field not in flight:
                                         flight[field] = "Not specified"
-
-                            response = f"I found these flights from {tool_call['arguments']['from_location']} to {tool_call['arguments']['to_location']}:\n\n"
-
-                            for flight in flights:
-                                response += f"• {flight['airline']}: ${flight['price_usd']} - Departs {flight['departure_date']}, Returns {flight['return_date']}\n. Book flight now: {flight['mock_booking_link']}"
-
-                            response += "\n Would you like me to help you find hotels at your destination?"
+                                
+                                # Generate booking link if not provided
+                                if 'mock_booking_link' not in flight:
+                                    airline_slug = flight['airline'].lower().replace(' ', '-').replace("'", "")
+                                    flight['mock_booking_link'] = f"https://mockflights.com/book/{airline_slug}"
+                                
+                                # Format the flight information with rich details
+                                response += f"• {flight['airline']}: ${flight['price_usd']}\n"
+                                response += f"  Departure: {flight['departure_date']} | Return: {flight['return_date']}\n"
+                                
+                                # Add optional details if available
+                                if 'duration' in flight:
+                                    response += f"  Duration: {flight['duration']}\n"
+                                if 'stops' in flight:
+                                    response += f"  Stops: {flight['stops']}\n"
+                                if 'airports' in flight:
+                                    response += f"  Airports: {flight['airports']}\n"
+                                
+                                # Add booking link with emoji
+                                response += f"  🎫 Book flight now: {flight['mock_booking_link']}\n\n"
+                            
+                            # Add contextual follow-up suggestion
+                            response += f"Would you like me to help you find hotels in {destination}?"
 
                             return response
                         except json.JSONDecodeError:
@@ -219,51 +318,172 @@ async def run_tool_query(query: str, context=None):
                             return "⚠️ Sorry, I couldn't handle that flight request right now."
                     elif tool_call["tool"] == "recommend_hotels":
                         try:
-                            hotels = json.loads(tool_data)
-                            budget = tool_call['arguments'].get('budget', 'medium')
-                            response = f"Here are some recommended {budget} hotels in {tool_call['arguments']['location']}:\n\n"
-                            for hotel in hotels:
-                                response += f"• {hotel['name']}: ${hotel['price_per_night_usd']} per night - Rating: {hotel['rating']}/5.0\n"
+                            hotels_data = json.loads(tool_data)
+
+                            if not hotels_data:
+                                return "I searched but couldn't find any hotels matching your criteria. Would you like to try different hotels?"
                             
+                            if isinstance(hotels_data, dict):
+                                hotels = [hotels_data]  # Single flight object
+                            elif isinstance(restaurants_data, list):
+                                hotels = hotels_data    # Multiple flights
+                            else:
+                                logger.warning(f"Unexpected Hotel data type: {type(hotels_data)}")
+                                return "I couldn't process the hotel search results."
+
+                            # budget = tool_call['arguments'].get('budget', 'medium')
+                            # Enhance the response format with rich details and booking links
+                            budget = tool_call['arguments'].get('budget', 'medium')
+                            response = f"Here are some recommended hotels in {tool_call['arguments']['location']} (Budget: {budget}):\n\n"
+
+                            for hotel in hotels:
+                                required_fields = ['name', 'location', 'price_per_night_usd']
+                                for field in required_fields:
+                                    if field not in hotel:
+                                        hotel[field] = "Not specified"
+
+                                 # Generate a booking link
+                                hotel_slug = hotel['name'].lower().replace(' ', '-').replace("'", "")
+                                booking_link = f"https://mockhotels.com/book/{hotel_slug}"
+                                
+                                # Build rich response with detailed information
+                                response += f"• {hotel['name']} - ${hotel['price_per_night_usd']} per night\n"
+                                response += f"  Rating: {hotel['rating']}/5.0 | Location: {hotel.get('area', hotel['location'])}\n"
+                                response += f"  {hotel.get('description', 'Comfortable accommodation with excellent amenities.')}\n"
+                                response += f"  Amenities: {', '.join(hotel.get('amenities', ['Wi-Fi', 'Air conditioning', 'Breakfast']))}\n"
+                                response += f"  📱 Book now: {booking_link}\n\n"
+
+                               # Add contextually relevant follow-up suggestion
+                            response += "Would you like recommendations for attractions or restaurants in this area as well?"
+                                                
                             # Add contextual follow-up question based on previous conversation
                             if context and "mentioned_destinations" in context:
                                 if tool_call['arguments']['location'] in context["mentioned_destinations"]:
-                                    response += "\nWould you like to know about attractions in this area as well?"
+                                    response += f"\nSince you mentioned {tool_call['arguments']['location']}, would you like some attraction suggestions for it?"
                             
                             return response
                         except:
                             return "⚠️ Sorry, I couldn't handle that request right now."
                     elif tool_call["tool"] == "recommend_attractions":
                         try:
-                            attractions = json.loads(tool_data)
-                            response = f"Here are some popular attractions in {tool_call['arguments']['location']}:\n\n"
-                            for attraction in attractions:
-                                response += f"• {attraction['name']}: {attraction['description']}\n"
+                            attractions_data = json.loads(tool_data)
+
+                            if not attractions_data:
+                                return "I searched but couldn't find any attractions matching your criteria. Would you like to try different attractionss?"
                             
-                            response += "\nWould you like restaurant recommendations as well?"
+                            if isinstance(attractions_data, dict):
+                                attractions = [attractions_data]  # Single attraction object
+                            elif isinstance(attractions_data, list):
+                                attractions = attractions_data    # Multiple attractions
+                            else:
+                                logger.warning(f"Unexpected attraction data type: {type(attractions_data)}")
+                                return "I couldn't process the attractions search results."
+                            
+                            location = tool_call['arguments']['location']
+                            response = f"Here are the top attractions in {location} worth visiting:\n\n"
+
+                            for attraction in attractions:
+                                required_fields = ['name', 'location', 'description']
+                                for field in required_fields:
+                                    if field not in attraction:
+                                        attraction[field] = "Not specified"
+
+                            
+                                # Generate booking links
+                                attraction_slug = attraction['name'].lower().replace(' ', '-').replace("'", "")
+                                ticket_link = f"https://getyourguide.com/book/{attraction_slug}"
+                                
+                                # Build rich response
+                                response += f"• {attraction['name']} - Rating: {attraction.get('rating', '4.5')}/5.0\n"
+                                response += f"  {attraction['description']}\n"
+                                response += f"  Hours: {attraction.get('hours', '9:00 AM - 5:00 PM daily')}\n"
+                                response += f"  Price: {attraction.get('price', '$15-25 per person')}\n"
+                                response += f"  🎟️ Get tickets: {ticket_link}\n\n"
+                                                                        
+                            # Add contextually relevant follow-up suggestion
+                            response += f"Would you like restaurant recommendations in {location} as well?"
                             return response
                         except Exception as e:
                             logger.error(f"Error processing attractions data: {e}")
                             return "⚠️ Sorry, I couldn't process the attractions data right now. Please try again later."
                     elif tool_call["tool"] == "recommend_restaurants":
                         try:
-                            restaurants = json.loads(tool_data)
-                            cuisine = tool_call['arguments'].get('cuisine', 'local')
-                            response = f"Here are some {cuisine} restaurants in {tool_call['arguments']['location']}:\n\n"
-                            for restaurant in restaurants:
-                                response += f"• {restaurant['name']} - Rating: {restaurant['rating']}/5.0\n"
+                            restaurants_data = json.loads(tool_data)
+
+                            if not restaurants_data:
+                                return "I searched but couldn't find any restaurants matching your criteria. Would you like to try different restaurants?"
+
+                        
+                            if isinstance(restaurants_data, dict):
+                                restaurants = [restaurants_data]  # Single restaurant object
+                            elif isinstance(restaurants_data, list):
+                                restaurants = restaurants_data    # Multiple restaurants
+                            else:
+                                logger.warning(f"Unexpected restaurant data type: {type(restaurants_data)}")
+                                return "I couldn't process the restaurant search results."
                             
+                            location = tool_call['arguments']['location']
+                            cuisine = tool_call['arguments'].get('cuisine', 'any')
+
+                            # Create rich response with booking links
+                            response = f"Here are the top recommended restaurants in {location}"
+                            if cuisine != 'any':
+                                response += f" for {cuisine} cuisine"
+                            response += ":\n\n"
+        
+                            
+                            for restaurant in restaurants:
+                                required_fields = ['name', 'location', 'cuisine']
+                                for field in required_fields:
+                                    if field not in restaurant:
+                                        restaurant[field] = "Not specified"
+                            
+                            # Generate booking link
+                                restaurant_slug = restaurant['name'].lower().replace(' ', '-').replace("'", "")
+                                booking_link = f"https://opentable.com/book/{restaurant_slug}"
+                                
+                                # Build rich response
+                                response += f"• {restaurant['name']} - {restaurant['cuisine']} cuisine\n"
+                                response += f"  Rating: {restaurant['rating']}/5.0 | Price per night: {restaurant.get('price_per_night_usd', '$$$')}\n"
+                                response += f"  {restaurant.get('description', 'Popular local restaurant with great reviews.')}\n"
+                                response += f"  Known for: {restaurant.get('signature_dish', 'Local specialties')}\n"
+                                response += f"  📞 Make a reservation: {booking_link}\n\n"
+
+                            response += f"Are you looking for any specific type of dining experience in {location}?"
+                                            
                             return response
+                        except json.JSONDecodeError as e:
+                            logger.error(f"JSON decode error for restaurant data: {e}, data: {tool_data[:100]}")
+                            return "I received invalid data from the restaurant search."
                         except Exception as e:
                             logger.error(f"Error parsing restaurant data: {e}")
-                            return f"I found some restaurants, but I'm having trouble formatting the details. Here's the raw information: {tool_data}"
+                            return f"I found some restaurants, but I'm having trouble formatting the details."
+                        # except Exception as e:
+                        #     logger.error(f"Error parsing restaurant data: {e}")
+                        #     return f"I found some restaurants, but I'm having trouble formatting the details. Here's the raw information: {tool_data}"
                     
                     elif tool_call["tool"] == "transport_options":
                         try:
-                            options = json.loads(tool_data)
+                            options_data = json.loads(tool_data)
+
+                            if isinstance(options_data, dict):
+                                options = [options_data]  # Single transport object
+                            elif isinstance(options_data, list):
+                                options = options_data    # Multiple transports
+                            else:
+                                logger.warning(f"Unexpected flight data type: {type(options_data)}")
+                                return "I couldn't process the flight search results. Would you like general information about this route instead?"
+                            
+                            for option in options:
+                                required_fields = ['from_location', 'to_location']
+                                for field in required_fields:
+                                    if field not in option:
+                                        option[field] = "Not specified"
+                            
                             response = f"Here are transportation options from {tool_call['arguments']['from_location']} to {tool_call['arguments']['to_location']}:\n\n"
-                            for mode, details in options.items():
-                                response += f"• By {mode}: {details['duration']} journey time - ${details['price_usd']}\n"
+
+                            # for mode, details in options.items():
+                            #     response += f"• By {mode}: {details['duration']} journey time - ${details['price_usd']}\n"
                             
                             return response
                         except Exception as e:
@@ -308,7 +528,7 @@ def run_async(query, context=None):
         context (dict, optional): User context for personalized responses
     """
     try:
-        # Check if we have a very basic query with just a destination. If so, enhance it with some default information to get a better response
+        # Check if we have a very basic query with just a destination. If so, enhance it with some information to get a better response
         words = query.lower().split()
 
         # Default location to use if none available in context
@@ -320,8 +540,9 @@ def run_async(query, context=None):
             "to " in query.lower() and 
             "from " not in query.lower()):
             
-            # Use contextual origin if available
             origin = default_origin
+
+            # Use contextual origin if available
             if context and context.get("current_trip", {}).get("origin"):
                 origin = context["current_trip"]["origin"]
             elif context and context.get("location"):
@@ -339,8 +560,10 @@ def run_async(query, context=None):
             else:
                 # LLM didn't include required booking links, fall back to tool
                 logger.info("LLM response missing booking links, falling back to tool workflow")
+
                 # Extract destination for the tool call
                 destination = query.lower().split("to ")[1].strip()
+
                 # Create date range for next month (example)
                 today = datetime.datetime.now()
                 next_month = today + datetime.timedelta(days=30)
@@ -351,15 +574,16 @@ def run_async(query, context=None):
                 # Construct a synthetic query for the tool workflow
                 tool_query = f"Find flights from {origin} to {destination} from {date_range}"
                 result = asyncio.run(run_tool_query(tool_query, context))
+
+                if isinstance(result, dict) and "result" in result:
+                    return result["result"]
                 return result
         
         # For all other queries, proceed with normal tool selection flow
         result = asyncio.run(run_tool_query(query, context))
         logger.info(f"Final result type: {type(result)}")
         logger.info(f"Final result preview: {str(result)[:100]}")
-        
-        if isinstance(result, dict) and "result" in result:
-            return result["result"]
+
         return result
     except Exception as e:
         logger.error(f"Error in run_async: {e}")

@@ -263,7 +263,7 @@ with col2:
             st.session_state.chat_history.append({"role": "user", "content": user_query})
             st.session_state.showing_welcome = False
             
-            # Update context with the current query before running the tool
+            # Update context with the current query 
             context_manager.update_context_from_text(user_query)
             
             # Record the search query in context

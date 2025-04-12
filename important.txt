@@ -1,0 +1,108 @@
+## Production ready config.toml with ssl/tls certificate
+
+# Streamlit server configuration
+[server]
+# Set to True if you are running behind a reverse proxy (Nginx, for example).
+headless = true
+# The port that Streamlit runs on internally. Nginx should forward traffic to this port.
+port = 8501
+# Disable Cross-Origin Resource Sharing (CORS) in production to prevent unwanted requests.
+enableCORS = false
+# Allowing WebSocket connections (useful for live interaction).
+enableWebsocketCompression = true
+# Increase the maximum message size if your app handles large data.
+maxMessageSize = 200
+# Optionally set the base URL path for the app (e.g., if running under a sub-path).
+baseUrlPath = "/"
+# Set the cookie secret for security (ensure it is unique and private).
+cookieSecret = "your-secure-cookie-secret"
+# Set whether Streamlit should run on a specific network address or bind to a specific IP.
+address = "0.0.0.0"  # Exposes Streamlit to all network interfaces.
+# Configure timeout for long-running operations.
+serverTimeout = 300
+
+# SSL/TLS Configuration for HTTPS
+# These settings are generally handled by Nginx, but you can specify them here if Streamlit is directly exposed.
+# sslCertFile = "/path/to/your/certificate.pem"
+# sslKeyFile = "/path/to/your/privatekey.pem"
+
+# Logging configuration
+[logger]
+# Set the log level (default: info, options: debug, warning, error).
+level = "debug"
+# Log format, can be customized.
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# To log to a file, uncomment and specify a file path.
+# logFile = "/path/to/logfile.log"
+
+# UI Configuration
+[ui]
+# Hide Streamlit branding in production for a cleaner UI.
+hideBanner = true
+# Hide the footer with Streamlit version info.
+hideFooter = true
+
+# Configure the default theme (optional)
+[theme]
+base = "dark"  # Options: "light" or "dark"
+primaryColor = "#1E90FF"  # Customize primary color for the theme
+
+# Caching (Optional, adjust based on app complexity)
+[client]
+# Cache settings can be used to store data in memory, reducing load times.
+# cache = true
+
+
+## Production ready config.toml
+
+# Streamlit server configuration
+[server]
+# Set to True if you are running behind a reverse proxy (Nginx, for example).
+headless = true
+# The port that Streamlit runs on internally. Nginx should forward traffic to this port.
+port = 8501
+# Disable Cross-Origin Resource Sharing (CORS) in production to prevent unwanted requests.
+enableCORS = false
+# Allowing WebSocket connections (useful for live interaction).
+enableWebsocketCompression = true
+# Increase the maximum message size if your app handles large data.
+maxMessageSize = 200
+# Optionally set the base URL path for the app (e.g., if running under a sub-path).
+baseUrlPath = "/"
+# Set the cookie secret for security (ensure it is unique and private).
+cookieSecret = "your-secure-cookie-secret"
+# Set whether Streamlit should run on a specific network address or bind to a specific IP.
+address = "0.0.0.0"  # Exposes Streamlit to all network interfaces.
+# Configure timeout for long-running operations.
+serverTimeout = 300
+
+# SSL/TLS Configuration for HTTPS
+# These settings are generally handled by Nginx, but you can specify them here if Streamlit is directly exposed.
+# sslCertFile = "/path/to/your/certificate.pem"
+# sslKeyFile = "/path/to/your/privatekey.pem"
+
+# Logging configuration
+[logger]
+# Set the log level (default: info, options: debug, warning, error).
+level = "debug"
+# Log format, can be customized.
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# To log to a file, uncomment and specify a file path.
+# logFile = "/path/to/logfile.log"
+
+# UI Configuration
+[ui]
+# Hide Streamlit branding in production for a cleaner UI.
+hideBanner = true
+# Hide the footer with Streamlit version info.
+hideFooter = true
+
+# Configure the default theme (optional)
+[theme]
+base = "dark"  # Options: "light" or "dark"
+primaryColor = "#1E90FF"  # Customize primary color for the theme
+
+# Caching (Optional, adjust based on app complexity)
+[client]
+# Cache settings can be used to store data in memory, reducing load times.
+# cache = true

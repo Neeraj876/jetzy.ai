@@ -92,8 +92,6 @@ def get_prompt_to_identify_tool_and_arguments(query, tools, context=None):
     tools_description = "\n".join([f"- {tool.name}: {tool.description}" for tool in tools])
     
     # Initial prompt
-    # prompt = "You are a helpful travel assistant with access to these tools:\n\n"
-    # prompt += f"{tools_description}\n\n"
     prompt = "You are a travel expert assistant with a focus on providing detailed, actionable information. You have access to these tools:\n\n"
     prompt += f"{tools_description}\n\n"
     
@@ -155,13 +153,6 @@ def get_prompt_to_identify_tool_and_arguments(query, tools, context=None):
     prompt += "- If budget is missing: Default to 'medium' budget level\n"
     prompt += "- IMPORTANT: Always make an intelligent guess for missing information rather than skipping the tool call\n\n"
     
-    # # UPDATED: Guide for when to use tools vs. direct response
-    # prompt += "DECISION GUIDE:\n"
-    # prompt += "1. For flight queries: If origin, destination and dates are available (either from the query or context), use the appropriate tool.\n"
-    # prompt += "2. For vague flight queries (like 'Find me flights to Paris'), use the appropriate if you can determine an origin from context, creating a reasonable date range for next month if none specified.\n"
-    # prompt += "3. For hotel, attraction, or restaurant queries: Use the appropriate tool as long as location is provided.\n"
-    # prompt += "4. IMPORTANT: If the query explicitly asks for booking links or requires detailed pricing information, always use a tool rather than providing a general response.\n\n"
-    
     # Continue with the rest of the prompt
     prompt += f"User's Question: {query}\n\n"
     prompt += "IMPORTANT: When you need to use a tool, you must ONLY respond with "
@@ -215,48 +206,6 @@ async def run_tool_query(query: str, context=None):
                     # Format response based on the tool type
                     if tool_call["tool"] == "search_flights":
                         try:
-                            # flights_data = json.loads(tool_data)
-                            # # if isinstance(tool_data, str):
-                            # #     try:
-                            # #         return json.loads(tool_data)
-                            # #     except json.JSONDecodeError:
-                            # #         return tool_data  # Return as is if not valid JSON
-                            # # return tool_data 
-
-                            # # Validate the response format
-                            # if not flights_data:
-                            #     return "I searched but couldn't find any flights matching your criteria. Would you like to try different dates or destinations?"
-                            
-                            
-                                                    
-                            # # if isinstance(flights_data, list):
-                            # #     flights = flights_data    
-                            # #     # Multiple flights
-                            # # else:
-                            # #     logger.warning(f"Unexpected flight data type: {type(flights_data)}")
-                            # #     return "I couldn't process the flight search results. Would you like general information about this route instead?"
-                            # # Convert to list if a single flight was returned
-                            # if isinstance(flights_data, dict):
-                            #     flights = [flights_data]  # Single flight object
-                            # elif isinstance(flights_data, list):
-                            #     flights = flights_data    # Multiple flights
-                            # else:
-                            #     logger.warning(f"Unexpected flight data type: {type(flights_data)}")
-                            #     return "I couldn't process the flight search results. Would you like general information about this route instead?"
-                                
-                            # # Validate each flight has the required fields
-                            # for flight in flights:
-                            #     required_fields = ['airline', 'price_usd', 'departure_date', 'return_date']
-                            #     for field in required_fields:
-                            #         if field not in flight:
-                            #             flight[field] = "Not specified"
-
-                            # response = f"I found these flights from {tool_call['arguments']['from_location']} to {tool_call['arguments']['to_location']}:\n\n"
-
-                            # for flight in flights:
-                            #     response += f"• {flight['airline']}: ${flight['price_usd']} - Departs {flight['departure_date']}, Returns {flight['return_date']}\n. Book flight now: {flight['mock_booking_link']}"
-
-                            # response += "\n Would you like me to help you find hotels at your destination?"
                             flights_data = json.loads(tool_data)
         
                             # Validate the response format
@@ -275,8 +224,6 @@ async def run_tool_query(query: str, context=None):
                             # Origin and destination for the response
                             origin = tool_call['arguments']['from_location']
                             destination = tool_call['arguments']['to_location']
-                            
-                            # Create rich, detailed response with proper formatting
                             response = f"✈️ I found these flights from {origin} to {destination}:\n\n"
                             
                             for flight in flights:
@@ -444,7 +391,7 @@ async def run_tool_query(query: str, context=None):
                                 
                                 # Build rich response
                                 response += f"• {restaurant['name']} - {restaurant['cuisine']} cuisine\n"
-                                response += f"  Rating: {restaurant['rating']}/5.0 | Price per night: {restaurant.get('price_per_night_usd', '$$$')}\n"
+                                response += f"  Rating: {restaurant['rating']}/5.0 \n"
                                 response += f"  {restaurant.get('description', 'Popular local restaurant with great reviews.')}\n"
                                 response += f"  Known for: {restaurant.get('signature_dish', 'Local specialties')}\n"
                                 response += f"  📞 Make a reservation: {booking_link}\n\n"

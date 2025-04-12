@@ -10,10 +10,11 @@ services:
     networks:
       - backend
     volumes:
-      - /home/ubuntu/jetzy/logs:/app/logs 
+      - ./logs:/app/logs 
     environment:
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0  # Make Streamlit listen on all interfaces
+    restart: unless-stopped 
 
   nginx:
     image: nginx:latest
@@ -26,6 +27,7 @@ services:
       - backend
     depends_on:
       - streamlit  
+    restart: unless-stopped
       
 networks:
   backend:

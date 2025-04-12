@@ -61,6 +61,8 @@ jobs:
           echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" > env-file.txt
           echo "ECR_REPOSITORY_STREAMLIT=${{ secrets.ECR_REPOSITORY_STREAMLIT }}" >> env-file.txt
           echo "IMAGE_TAG=${{ github.sha }}" >> env-file.txt
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > env-file.txt
+
           
           echo "File created at:"
           pwd

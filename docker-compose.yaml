@@ -5,10 +5,12 @@ services:
     container_name: streamlit
     ports:
       - "8501:8501"  
+    env_file:
+      - .env
     networks:
       - backend
     volumes:
-      - /mnt/d/jetzy/logs:/mnt/d/jetzy/logs 
+      - /home/ubuntu/jetzy/logs:/app/logs 
     environment:
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0  # Make Streamlit listen on all interfaces

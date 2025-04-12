@@ -14,6 +14,12 @@ services:
     environment:
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0  # Make Streamlit listen on all interfaces
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped 
 
   nginx:
@@ -26,7 +32,8 @@ services:
     networks:
       - backend
     depends_on:
-      - streamlit  
+      streamlit:
+        condition: service_healthy
     restart: unless-stopped
       
 networks:

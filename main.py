@@ -230,7 +230,7 @@ with col2:
         
         # Feature cards in 3 columns
         st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
-        st.markdown("### How TravelBuddy Works")
+        st.markdown("### How Zetzy Works")
         
         col1, col2, col3 = st.columns(3)
         
@@ -295,7 +295,7 @@ with col2:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # Add footer
-st.markdown("<div class='footer'>TravelBuddy AI Assistant • Powered by advanced AI technology</div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Zetzy • Powered by advanced AI technology</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     pass

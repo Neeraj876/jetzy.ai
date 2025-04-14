@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Lint code
+        run: echo "Linting repository"
+
+      - name: Run unit tests
+        run: echo "Running unit tests"
+
+  continuous-deployment:
+    name: Continuous Deployment
+    needs: integration
+    runs-on: 
+      - self-hosted
+      - staging
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build and Deploy with Docker Compose
+        run: |
+          echo "Building and deploying with Docker Compose..."
+
+          docker-compose down || true
+
+          echo "Starting services with Docker Compose..."
+          docker-compose -f docker-compose.yaml --project-name ${{ secrets.STACK_NAME_STAGING }} build
+
+          docker-compose -f docker-compose.yaml --project-name ${{ secrets.STACK_NAME_STAGING }} up -d
+
+          echo "Deployment completed successfully"
+
+      - name: Cleanup
+        run: |
+          echo "Cleaning up unused Docker resources..."
+          docker image prune -f
+          

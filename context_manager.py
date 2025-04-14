@@ -56,7 +56,6 @@ class ContextManager:
         Add a search query to recent searches
         """
         # Keep only unique and non-empty searches
-
         if search_query and search_query.strip():
 
             # Remove existing duplicate
@@ -233,7 +232,7 @@ class ContextManager:
                     if origin and destination:
                         self.update_current_trip(origin=origin, destination=destination)
                         
-            # NEW: Handle just destination scenario with "to X" pattern without "from"
+            # Handle just destination scenario with "to X" pattern without "from"
             elif len(destinations) == 1:
 
                 # Look for the pattern "to X"

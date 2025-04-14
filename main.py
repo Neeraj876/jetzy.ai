@@ -164,8 +164,11 @@ with st.sidebar:
         
         if st.button("Clear Travel Context"):
             context_manager.clear_context()
+            st.session_state.chat_history = []
+            # You might also want to reset the welcome message
+            st.session_state.showing_welcome = True
             st.rerun()
-    
+
     st.markdown("---")
     st.markdown("##### Sample Queries")
     

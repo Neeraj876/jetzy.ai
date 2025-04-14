@@ -4,27 +4,33 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Set the working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies and UV
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir uv
 
-# Copy the current directory contents into the container
-COPY . /app
+# Copy only requirements file first for better caching
+COPY requirements.lock ./
+
+# Install dependencies with UV
+RUN uv pip install --no-cache --system -r requirements.lock
 
 # Create a non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Create logs directory and set permissions
-RUN mkdir -p /app/logs && chown -R appuser:appuser /app
+# Create logs directory
+RUN mkdir -p /app/logs
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy the application code with proper ownership
+COPY --chown=appuser:appuser . /app
+
+# Set permissions for the logs directory
+RUN chown -R appuser:appuser /app/logs
 
 # Switch to non-root user
 USER appuser

@@ -31,7 +31,7 @@ services:
     networks:
       - backend
     depends_on:
-      streamlit:
+      app:
         condition: service_healthy
     restart: unless-stopped
       

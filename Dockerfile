@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && pip install --no-cache-dir uv
 
 # Copy only requirements file first for better caching
-COPY requirements.lock ./
+COPY pyproject.toml requirements.lock ./
 
 # Install dependencies with UV
 RUN uv pip install --no-cache --system -r requirements.lock

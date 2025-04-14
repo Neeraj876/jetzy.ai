@@ -2,8 +2,14 @@
 .env
 .txt*
 
+# Rye specific
+.rye/
+rye.lock
+
+
 # Python
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 *.so
@@ -28,6 +34,8 @@ var/
 venv/
 ENV/
 env/
+.venv/
+
 
 # Streamlit
 .streamlit/

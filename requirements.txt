@@ -1,7 +1,0 @@
-mcp[cli]
-openai
-python-dotenv
-streamlit
-pytest
-pytest-asyncio
-pytest-mock

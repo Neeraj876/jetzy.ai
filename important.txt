@@ -126,3 +126,37 @@ sudo ./svc.sh uninstall
 
 sudo ./svc.sh install
 sudo ./svc.sh start
+
+## How to migrate our existing project to Rye
+
+1. Install the Rye via the following command
+
+curl -sSf https://rye.astral.sh/get | bash
+
+2. Add Rye to your PATH
+
+echo 'source "$HOME/.rye/env"' >> ~/.bashrc
+source ~/.bashrc
+
+3. Navigate to our project directory
+
+4. Initialize Rye in your existing project
+
+rye init --existing
+
+5. Import our dependencies from requirements.txt
+
+cat requirements.txt | xargs rye add
+
+6. Remove old venv
+
+rm -rf venv
+
+7. Install all dependencies using Rye (with UV)
+
+rye sync
+
+8. Activate Rye's virtual environment
+
+source .rye/venv/bin/activate
+

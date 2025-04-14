@@ -8,7 +8,7 @@ load_dotenv()
 
 # Set page configuration with wider layout
 st.set_page_config(
-    page_title="TravelBuddy AI Assistant",
+    page_title="Zetzy",
     page_icon="✈️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -188,8 +188,8 @@ with st.sidebar:
 # Main content area
 col1, col2, col3 = st.columns([1, 10, 1])
 with col2:
-    st.markdown('<h1 class="main-header">TravelBuddy AI Assistant</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Your personal AI travel planner for seamless trip organization</p>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Zetzy</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Your personal travel planner for seamless trip organization</p>', unsafe_allow_html=True)
 
     # Query input area
     with st.container():
@@ -215,8 +215,8 @@ with col2:
     if st.session_state.showing_welcome and not submit_button:
         st.markdown("""
         <div class="feature-card">
-            <h3>👋 Welcome to TravelBuddy!</h3>
-            <p>I'm your AI travel assistant, ready to help plan your perfect trip. Ask me about flights, hotels, 
+            <h3>👋 Welcome to Zetzy!</h3>
+            <p>I'm your travel assistant, ready to help plan your perfect trip. Ask me about flights, hotels, 
             local attractions, restaurants, transportation options, or seasonal travel advice.</p>
             <p>Try asking questions like:</p>
             <ul>

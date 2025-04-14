@@ -106,3 +106,23 @@ primaryColor = "#1E90FF"  # Customize primary color for the theme
 [client]
 # Cache settings can be used to store data in memory, reducing load times.
 # cache = true
+
+
+## How to add labels after setting up the github actions runner on ec2
+
+1. Uninstall the service:
+
+sudo ./svc.sh uninstall
+
+2. Then remove the configuration:
+
+./config.sh remove
+
+3. Reconfigure the runner with the correct labels:
+
+./config.sh --url https://github.com/Neeraj876/jetzy.ai --token YOUR_TOKEN --labels self-hosted,staging
+
+4. Reinstall and start the service:
+
+sudo ./svc.sh install
+sudo ./svc.sh start

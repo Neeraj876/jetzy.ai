@@ -188,7 +188,7 @@ with st.sidebar:
 # Main content area
 col1, col2, col3 = st.columns([1, 10, 1])
 with col2:
-    st.markdown('<h1 class="main-header">Zetzy</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Jetzy</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">Your personal travel planner for seamless trip organization</p>', unsafe_allow_html=True)
 
     # Query input area
@@ -215,7 +215,7 @@ with col2:
     if st.session_state.showing_welcome and not submit_button:
         st.markdown("""
         <div class="feature-card">
-            <h3>👋 Welcome to Zetzy!</h3>
+            <h3>👋 Welcome to Jetzy!</h3>
             <p>I'm your travel assistant, ready to help plan your perfect trip. Ask me about flights, hotels, 
             local attractions, restaurants, transportation options, or seasonal travel advice.</p>
             <p>Try asking questions like:</p>
@@ -230,7 +230,7 @@ with col2:
         
         # Feature cards in 3 columns
         st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
-        st.markdown("### How Zetzy Works")
+        st.markdown("### How Jetzy Works")
         
         col1, col2, col3 = st.columns(3)
         
@@ -295,7 +295,7 @@ with col2:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # Add footer
-st.markdown("<div class='footer'>Zetzy • Powered by advanced AI technology</div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Jetzy • Powered by advanced AI technology</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     pass

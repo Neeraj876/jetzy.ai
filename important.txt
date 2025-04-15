@@ -138,11 +138,11 @@ curl -sSf https://rye.astral.sh/get | bash
 echo 'source "$HOME/.rye/env"' >> ~/.bashrc
 source ~/.bashrc
 
-3. Navigate to our project directory
+3. Navigate to our project directory if not already inside it
 
 4. Initialize Rye in your existing project
 
-rye init --existing
+rye init 
 
 5. Import our dependencies from requirements.txt
 

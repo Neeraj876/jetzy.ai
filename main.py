@@ -8,7 +8,7 @@ load_dotenv()
 
 # Set page configuration with wider layout
 st.set_page_config(
-    page_title="Zetzy",
+    page_title="Jetzy",
     page_icon="✈️",
     layout="wide",
     initial_sidebar_state="expanded"

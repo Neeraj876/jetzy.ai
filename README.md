@@ -18,16 +18,6 @@ This application demonstrates the integration of:
 - OpenAI's language models for understanding user query and dynamic response generation
 - Managed Context Protocol (MCP) for tool execution & Context-Aware Function Calling 
 
-## Project Structure
-```plaintext
-project/
-├── main.py           # Main application file
-├── mcp_server.py     # MCP server implementation
-├── mcp_client.py     # LLM Client for API connections
-├── requirements.txt  # Project dependencies
-└── README.md         # Project documentation
-```
-
 ## Installation
 
 1. Clone this repository
@@ -61,7 +51,9 @@ streamlit run main.py
 - **Python**  
 - **Streamlit**  
 - **OpenAI API** 
-- **MCP SDK** 
+- **MCP SDK**
+- **NGINX**
+- **GitHub Actions**
 
 ## Requirements
 
